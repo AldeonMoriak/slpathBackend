@@ -7,10 +7,12 @@ import { jwtConstants } from './constants';
 import { LocalStrategy } from './local.strategy';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+import { AdminsModule } from 'src/admins/admins.module';
 
 @Module({
   imports: [
     UsersModule,
+    AdminsModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: jwtConstants.secret,
