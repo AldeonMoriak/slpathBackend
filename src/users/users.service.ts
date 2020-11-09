@@ -1,7 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { SignupUserDTO } from 'src/auth/dto/signup-user.dto';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +26,28 @@ export class UsersService {
         username,
       },
     });
+  }
+
+  async signup(signupUserDTO: SignupUserDTO): Promise<any> {
+    const { email, name, password, username } = signupUserDTO;
+    const user = new User();
+    user.email = email;
+    user.name = name;
+    user.password = await bcrypt.hash(password, await bcrypt.genSalt(10));
+    user.username = username;
+
+    try {
+      await user.save();
+    } catch (error) {
+      if (error.errno === 1062) {
+        throw new ConflictException('این کاربر قبلا ثبت نام کرده است.');
+      }
+      throw new InternalServerErrorException();
+    }
+
+    return {
+      message: 'عملیات موفقیت آمیز بود.',
+    };
   }
 
   async remove(id: string): Promise<void> {

@@ -1,7 +1,16 @@
-import { Column, Entity, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  Timestamp,
+  Unique,
+} from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Entity()
-export class User {
+@Unique(['username', 'email'])
+export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()
@@ -16,4 +25,14 @@ export class User {
   isActive: boolean;
   @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
   createdDateTime: Timestamp;
+
+  async validatePassword(password: string): Promise<boolean> {
+    let hash: boolean;
+    try {
+      hash = await bcrypt.compare(password, this.password);
+    } catch (error) {
+      console.log(error);
+    }
+    return hash;
+  }
 }

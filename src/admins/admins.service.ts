@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { LoginUserDTO } from 'src/auth/dto/login-user.dto';
 import { Repository } from 'typeorm';
 import { Admin } from './admin.entity';
 
@@ -23,5 +24,14 @@ export class AdminsService {
 
   async remove(id: string): Promise<void> {
     await this.adminRepository.update(id, { isActive: false });
+  }
+
+  async validateUserPassword(loginUserDTO: LoginUserDTO): Promise<string> {
+    const { username, password } = loginUserDTO;
+    const admin = await this.findOne(username);
+
+    if (admin && (await admin.validatePassword(password)))
+      return admin.username;
+    else return null;
   }
 }

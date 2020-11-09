@@ -1,5 +1,17 @@
-import { User } from 'src/users/user.entity';
-import { Entity } from 'typeorm';
+import { Article } from '../article/article.entity';
+import { Category } from '../article/category.entity';
+import { Tag } from '../article/tag.entity';
+import { User } from '../users/user.entity';
+import { Entity, OneToMany } from 'typeorm';
 
 @Entity()
-export class Admin extends User {}
+export class Admin extends User {
+  @OneToMany(() => Category, (category) => category.admin)
+  category: Category;
+
+  @OneToMany(() => Article, (article) => article.admin)
+  article: Article;
+
+  @OneToMany(() => Tag, (tag) => tag.admin)
+  tag: Tag;
+}
