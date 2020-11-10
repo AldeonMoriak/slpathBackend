@@ -16,6 +16,10 @@ export class AuthService {
     return this.usersService.signup(signupUserDTO);
   }
 
+  async adminSignup(singupUserDTO: SignupUserDTO): Promise<any> {
+    return this.adminsService.signup(singupUserDTO);
+  }
+
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findOne(username);
     if (user && user.password === pass) {
@@ -37,7 +41,9 @@ export class AuthService {
 
     const info = { username: admin.username, sub: admin.id, isAdmin: true };
     return {
-      access_token: this.jwtService.sign(info),
+      access_token: this.jwtService.sign(info, {
+        secret: 'AnotherSecretCouldBeUsedForIt',
+      }),
     };
   }
 

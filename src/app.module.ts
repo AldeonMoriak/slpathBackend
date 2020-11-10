@@ -7,7 +7,13 @@ import { AdminsModule } from './admins/admins.module';
 import { ArticleModule } from './article/article.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, TypeOrmModule.forRoot(typeOrmConfig), AdminsModule, ArticleModule],
+  imports: [
+    AuthModule,
+    UsersModule,
+    TypeOrmModule.forRoot(typeOrmConfig),
+    AdminsModule,
+    ArticleModule,
+  ],
   controllers: [],
   providers: [],
 })

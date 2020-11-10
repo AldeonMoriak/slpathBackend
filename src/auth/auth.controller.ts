@@ -7,6 +7,7 @@ import {
   ValidationPipe,
   Body,
 } from '@nestjs/common';
+import { Roles } from 'src/admins/roles.decorator';
 import { AuthService } from './auth.service';
 import { LoginUserDTO } from './dto/login-user.dto';
 import { SignupUserDTO } from './dto/signup-user.dto';
@@ -21,6 +22,12 @@ export class AuthController {
   @Post('auth/login')
   async login(@Request() req) {
     return this.authService.login(req.user);
+  }
+
+  @Post('admin/create')
+  @Roles('admin')
+  async create(@Body() signupUserDTO: SignupUserDTO) {
+    this.authService.adminSignup(signupUserDTO);
   }
 
   @Post('auth/signup')
