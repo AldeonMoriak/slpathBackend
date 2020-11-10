@@ -37,7 +37,7 @@ export class AdminsService {
 
   async signup(signupUserDTO: SignupUserDTO): Promise<any> {
     const { email, name, password, username } = signupUserDTO;
-    const admin = new User();
+    const admin = new Admin();
     admin.email = email;
     admin.name = name;
     admin.password = await bcrypt.hash(password, await bcrypt.genSalt(10));

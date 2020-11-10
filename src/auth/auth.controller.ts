@@ -7,25 +7,21 @@ import {
   ValidationPipe,
   Body,
 } from '@nestjs/common';
-import { Roles } from 'src/admins/roles.decorator';
 import { AuthService } from './auth.service';
 import { LoginUserDTO } from './dto/login-user.dto';
 import { SignupUserDTO } from './dto/signup-user.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { LocalAuthGuard } from './local-auth.guard';
+import { AdminJwtAuthGuard } from '../admins/admin-jwt-auth.guard';
 
 @Controller()
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards(LocalAuthGuard)
   @Post('auth/login')
-  async login(@Request() req) {
-    return this.authService.login(req.user);
+  async login(@Body(ValidationPipe) LoginUserDTO: LoginUserDTO) {
+    return this.authService.login(LoginUserDTO);
   }
 
   @Post('admin/create')
-  @Roles('admin')
   async create(@Body() signupUserDTO: SignupUserDTO) {
     this.authService.adminSignup(signupUserDTO);
   }
@@ -44,7 +40,7 @@ export class AuthController {
     return this.authService.adminLogin(loginUserDTO);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminJwtAuthGuard)
   @Get('user')
   getUser(@Request() req) {
     return req.user;
