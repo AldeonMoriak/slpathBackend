@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   Timestamp,
 } from 'typeorm';
-import { Article } from './article.entity';
+import { Article } from '../article/article.entity';
 
 @Entity()
 export class Category extends BaseEntity {

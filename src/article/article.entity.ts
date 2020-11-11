@@ -9,8 +9,8 @@ import {
   PrimaryGeneratedColumn,
   Timestamp,
 } from 'typeorm';
-import { Category } from './category.entity';
-import { Tag } from './tag.entity';
+import { Category } from '../categories/category.entity';
+import { Tag } from '../tags/tag.entity';
 
 @Entity()
 export class Article extends BaseEntity {

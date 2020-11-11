@@ -1,6 +1,6 @@
 import { Article } from '../article/article.entity';
-import { Category } from '../article/category.entity';
-import { Tag } from '../article/tag.entity';
+import { Category } from '../categories/category.entity';
+import { Tag } from '../tags/tag.entity';
 import { User } from '../users/user.entity';
 import { Entity, OneToMany } from 'typeorm';
 
