@@ -1,3 +1,3 @@
-export class CreateTag {
+export class CreateTagDTO {
   title: string;
 }

@@ -16,8 +16,10 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
-  findAll(): Promise<User[]> {
-    return this.userRepository.find();
+  async findAll(): Promise<User[]> {
+    const users = await this.userRepository.find();
+    users.map((user) => delete user.password);
+    return users;
   }
 
   findOne(username: string): Promise<User> {

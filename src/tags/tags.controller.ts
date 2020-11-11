@@ -1,8 +1,17 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminJwtAuthGuard } from 'src/admins/admin-jwt-auth.guard';
 import { Admin } from 'src/admins/admin.entity';
 import { GetAdmin } from 'src/admins/get-admin.decorator';
-import { CreateTag } from './dto/create-tag.dto';
+import { CreateTagDTO } from './dto/create-tag.dto';
+import { EditTagDTO } from './dto/edit-tag.dto';
 import { Tag } from './tag.entity';
 import { TagsService } from './tags.service';
 
@@ -18,9 +27,19 @@ export class TagsController {
 
   @Post('createTag')
   async createTag(
-    @Body() createTag: CreateTag,
+    @Body() createTagDTO: CreateTagDTO,
     @GetAdmin() admin: Admin,
   ): Promise<void> {
-    return this.tagsService.createTAg(createTag.title, admin);
+    return this.tagsService.createTag(createTagDTO, admin);
+  }
+
+  @Patch('editTag')
+  async editTag(@Body() editTagDTO: EditTagDTO): Promise<Tag> {
+    return this.tagsService.editTag(editTagDTO);
+  }
+
+  @Delete('deleteTag')
+  async deleteTag(@Body() id: number): Promise<void> {
+    return this.tagsService.deleteTag(id);
   }
 }

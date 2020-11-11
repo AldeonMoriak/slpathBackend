@@ -4,8 +4,7 @@ import { Admin } from 'src/admins/admin.entity';
 export const GetAdmin = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): Admin => {
     const request = ctx.switchToHttp().getRequest();
-    console.log(request);
-    return request.admin;
+    return request.user;
   },
   // export const GetUser = createParamDecorator(
   //   (data, req): User => {
