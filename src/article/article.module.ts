@@ -11,8 +11,8 @@ import { ArticleService } from './article.service';
   imports: [
     TypeOrmModule.forFeature([Article]),
     AdminsModule,
-    CategoriesModule,
     TagsModule,
+    CategoriesModule,
   ],
   controllers: [ArticleController],
   providers: [ArticleService],

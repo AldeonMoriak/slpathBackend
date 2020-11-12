@@ -9,5 +9,6 @@ import { AdminsModule } from 'src/admins/admins.module';
   imports: [TypeOrmModule.forFeature([Tag]), AdminsModule],
   providers: [TagsService],
   controllers: [TagsController],
+  exports: [TagsService],
 })
 export class TagsModule {}
