@@ -23,7 +23,7 @@ export class ArticleService {
 
   async createArticle(
     createArticleDTO: CreateArticleDTO,
-    file: File,
+    file: any,
     user: any,
   ): Promise<void> {
     const admin = await this.adminsService.findOne(user.username);
@@ -50,7 +50,7 @@ export class ArticleService {
     article.admin = admin;
     article.category = category;
     article.tags = tags;
-    article.imageUrl = 'http://localhost:3000/image.jpg';
+    article.imageUrl = file.path;
 
     try {
       await article.save();
