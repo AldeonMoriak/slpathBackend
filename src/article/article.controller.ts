@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
+  Patch,
   Post,
   Res,
   UploadedFile,
@@ -18,10 +20,19 @@ import { ArticleService } from './article.service';
 import { CreateArticleDTO } from './dto/create-article.dto';
 import { imageFileFilter } from 'src/utils/image-file-filter';
 import { Response } from 'express';
+import { EditArticleDTO } from './dto/edit-article.dto';
+import { CurrentUser } from 'src/interfaces/current-user.interface';
+import { Article } from './article.entity';
 
 @Controller('article')
 export class ArticleController {
   constructor(private articlesService: ArticleService) {}
+
+  @Get('getAllArticles')
+  async getAllArticles(): Promise<Article[]> {
+    return this.articlesService.getAllArticles();
+  }
+
   @UseGuards(AdminJwtAuthGuard)
   @Post('createArticle')
   @UseInterceptors(
@@ -44,6 +55,31 @@ export class ArticleController {
     } catch (error) {
       return error;
     }
+  }
+
+  @UseGuards(AdminJwtAuthGuard)
+  @Patch('editeArticle')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: 'uploads/',
+        filename: editFileName,
+      }),
+      fileFilter: imageFileFilter,
+    }),
+  )
+  async editArticle(
+    @UploadedFile() file,
+    @Body() editArticleDTO: EditArticleDTO,
+    @GetAdmin() admin: CurrentUser,
+  ): Promise<Article> {
+    return this.articlesService.editArticle(editArticleDTO, file, admin);
+  }
+
+  @UseGuards(AdminJwtAuthGuard)
+  @Delete('deleteArticle')
+  async deleteArticle(@Body() id: number): Promise<void> {
+    return this.deleteArticle(id);
   }
 
   @Get(':imgpath')

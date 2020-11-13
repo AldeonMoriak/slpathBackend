@@ -56,7 +56,8 @@ export class TagsService {
   }
 
   async deleteTag(id: number): Promise<void> {
-    const category = await this.tagRepository.delete(id);
+    const category = await this.tagRepository.findOne(id);
     if (!category) throw new NotFoundException('تگ مورد نظر یافت نشد.');
+    await this.tagRepository.delete(id);
   }
 }

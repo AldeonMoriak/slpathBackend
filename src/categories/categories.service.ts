@@ -57,7 +57,8 @@ export class CategoriesService {
   }
 
   async deleteCategory(id: number): Promise<void> {
-    const category = await this.categoryRepository.delete(id);
+    const category = await this.categoryRepository.findOne(id);
     if (!category) throw new NotFoundException('دسته بندی مورد نظر یافت نشد.');
+    await this.categoryRepository.delete(id);
   }
 }

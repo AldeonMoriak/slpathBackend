@@ -38,6 +38,9 @@ export class Article extends BaseEntity {
   @ManyToOne(() => Admin, (admin) => admin.article)
   admin: Admin;
 
+  @ManyToOne(() => Admin, (admin) => admin.article, { nullable: true })
+  editor: Admin;
+
   @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
   createdDateTime: Timestamp;
 
