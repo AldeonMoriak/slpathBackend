@@ -29,10 +29,10 @@ export class Article extends BaseEntity {
   @Column()
   imageUrl: string;
 
-  @Column()
-  referenceUrl: string;
+  @Column({ nullable: true })
+  referenceUrl?: string;
 
-  @ManyToOne(() => Category, (category) => category.article)
+  @ManyToOne(() => Category, (category) => category.article, { nullable: true })
   category: Category;
 
   @ManyToOne(() => Admin, (admin) => admin.article)
@@ -41,7 +41,7 @@ export class Article extends BaseEntity {
   @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
   createdDateTime: Timestamp;
 
-  @ManyToMany(() => Tag)
+  @ManyToMany(() => Tag, { nullable: true })
   @JoinTable()
   tags: Tag[];
 }

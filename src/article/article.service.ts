@@ -23,19 +23,26 @@ export class ArticleService {
 
   async createArticle(
     createArticleDTO: CreateArticleDTO,
+    file: File,
     user: any,
   ): Promise<void> {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
       throw new UnauthorizedException('شما دسترسی به این عملیات ندارید.');
-    const category = await this.categoriesService.findOne(
-      createArticleDTO.categoryId,
-    );
+    let category = null;
+    if (createArticleDTO.categoryId) {
+      category = await this.categoriesService.findOne(
+        createArticleDTO.categoryId,
+      );
+    }
     const tags = [];
-    createArticleDTO.tags.map(async (tagId) => {
-      const tag = await this.tagsService.findOne(tagId);
-      tags.push(tag);
-    });
+    if (createArticleDTO.tags) {
+      createArticleDTO.tags.map(async (tagId) => {
+        const tag = await this.tagsService.findOne(tagId);
+        tags.push(tag);
+      });
+    }
+    console.log(file);
     const article = new Article();
     article.title = createArticleDTO.title;
     article.description = createArticleDTO.description;
@@ -43,5 +50,12 @@ export class ArticleService {
     article.admin = admin;
     article.category = category;
     article.tags = tags;
+    article.imageUrl = 'http://localhost:3000/image.jpg';
+
+    try {
+      await article.save();
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
