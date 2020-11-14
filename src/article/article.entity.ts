@@ -20,14 +20,17 @@ export class Article extends BaseEntity {
   @Column()
   title: string;
 
-  @Column()
+  @Column('text')
   description: string;
 
-  @Column()
+  @Column('text')
   content: string;
 
   @Column()
   imageUrl: string;
+
+  @Column()
+  thumbnailUrl: string;
 
   @Column({ nullable: true })
   referenceUrl?: string;

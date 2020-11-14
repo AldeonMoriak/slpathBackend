@@ -38,7 +38,7 @@ export class ArticleController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: 'uploads/',
+        destination: 'uploads/images/',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
@@ -49,7 +49,6 @@ export class ArticleController {
     @Body() createArticleDTO: CreateArticleDTO,
     @GetAdmin() admin: any,
   ): Promise<void> {
-    console.log(file);
     try {
       return this.articlesService.createArticle(createArticleDTO, file, admin);
     } catch (error) {
@@ -73,6 +72,7 @@ export class ArticleController {
     @Body() editArticleDTO: EditArticleDTO,
     @GetAdmin() admin: CurrentUser,
   ): Promise<Article> {
+    console.log(file);
     return this.articlesService.editArticle(editArticleDTO, file, admin);
   }
 

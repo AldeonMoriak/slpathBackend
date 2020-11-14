@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { Article } from './article.entity';
 import { CreateArticleDTO } from './dto/create-article.dto';
 import { EditArticleDTO } from './dto/edit-article.dto';
+import * as sharp from 'sharp';
 
 @Injectable()
 export class ArticleService {
@@ -50,7 +51,21 @@ export class ArticleService {
         tags.push(tag);
       });
     }
-    console.log(file);
+    if (!file) throw new UnauthorizedException('لطفا یک عکس بارگزاری کنید!');
+    const image = sharp('uploads/images/' + file.filename);
+    image
+      .resize({
+        width: 300,
+        fit: sharp.fit.contain,
+        background: { r: 255, g: 255, b: 255, alpha: 0.5 },
+      })
+      .toFile('uploads/thumbnails/thumbnail-' + file.filename)
+      .then((info) => {
+        console.log(info);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
     const article = new Article();
     article.title = createArticleDTO.title;
     article.description = createArticleDTO.description;
@@ -58,7 +73,8 @@ export class ArticleService {
     article.admin = admin;
     article.category = category;
     article.tags = tags;
-    article.imageUrl = file.path;
+    article.imageUrl = file.filename;
+    article.thumbnailUrl = 'thumbnail-' + file.filename;
 
     try {
       await article.save();
