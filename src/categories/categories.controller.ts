@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   Post,
   UseGuards,
@@ -39,8 +40,8 @@ export class CategoriesController {
     return this.categoriesService.editCategory(editCategoryDTO);
   }
 
-  @Delete('deleteCategory')
-  async deleteCategory(@Body() id: number): Promise<void> {
+  @Delete('deleteCategory/:id')
+  async deleteCategory(@Param() id: number): Promise<void> {
     return this.categoriesService.deleteCategory(id);
   }
 }

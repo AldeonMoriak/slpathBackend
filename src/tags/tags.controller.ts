@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   Post,
   UseGuards,
@@ -38,8 +39,8 @@ export class TagsController {
     return this.tagsService.editTag(editTagDTO);
   }
 
-  @Delete('deleteTag')
-  async deleteTag(@Body() id: number): Promise<void> {
+  @Delete('deleteTag/:id')
+  async deleteTag(@Param() id: number): Promise<void> {
     return this.tagsService.deleteTag(id);
   }
 }

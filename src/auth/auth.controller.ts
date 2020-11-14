@@ -45,4 +45,10 @@ export class AuthController {
   getUser(@Request() req) {
     return req.user;
   }
+
+  @UseGuards(AdminJwtAuthGuard)
+  @Get('auth/logout')
+  logout() {
+    return true;
+  }
 }

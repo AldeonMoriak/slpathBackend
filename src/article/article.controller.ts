@@ -24,11 +24,11 @@ import { EditArticleDTO } from './dto/edit-article.dto';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
 import { Article } from './article.entity';
 
-@Controller('article')
+@Controller('articles')
 export class ArticleController {
   constructor(private articlesService: ArticleService) {}
 
-  @Get('getAllArticles')
+  @Get('getAll')
   async getAllArticles(): Promise<Article[]> {
     return this.articlesService.getAllArticles();
   }
@@ -77,8 +77,8 @@ export class ArticleController {
   }
 
   @UseGuards(AdminJwtAuthGuard)
-  @Delete('deleteArticle')
-  async deleteArticle(@Body() id: number): Promise<void> {
+  @Delete('deleteArticle/:id')
+  async deleteArticle(@Param() id: number): Promise<void> {
     return this.deleteArticle(id);
   }
 
