@@ -36,7 +36,7 @@ export class AuthController {
   @Post('portal/login')
   async adminLogin(
     @Body(ValidationPipe) loginUserDTO: LoginUserDTO,
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ message: string; access_token: string }> {
     return this.authService.adminLogin(loginUserDTO);
   }
 
