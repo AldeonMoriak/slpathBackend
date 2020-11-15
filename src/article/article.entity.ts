@@ -47,6 +47,9 @@ export class Article extends BaseEntity {
   @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
   createdDateTime: Timestamp;
 
+  @Column({ nullable: true, type: 'timestamp' })
+  updatedDateTime: Timestamp;
+
   @ManyToMany(() => Tag, { nullable: true })
   @JoinTable()
   tags: Tag[];

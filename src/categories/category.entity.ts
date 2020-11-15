@@ -21,9 +21,15 @@ export class Category extends BaseEntity {
   @ManyToOne(() => Admin, (admin) => admin.category)
   admin: Admin;
 
+  @ManyToOne(() => Admin, (admin) => admin.category)
+  editor: Admin;
+
   @OneToMany(() => Article, (article) => article.category)
   article: Article;
 
   @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
   createdDateTime: Timestamp;
+
+  @Column({ nullable: true, type: 'timestamp' })
+  updateDateTime: Timestamp;
 }
