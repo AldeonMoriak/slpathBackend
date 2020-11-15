@@ -23,6 +23,7 @@ import { Response } from 'express';
 import { EditArticleDTO } from './dto/edit-article.dto';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
 import { Article } from './article.entity';
+import ArticleResponse from './interfaces/article.interface';
 
 @Controller('articles')
 export class ArticleController {
@@ -48,7 +49,7 @@ export class ArticleController {
     @UploadedFile() file,
     @Body() createArticleDTO: CreateArticleDTO,
     @GetAdmin() admin: any,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     try {
       return this.articlesService.createArticle(createArticleDTO, file, admin);
     } catch (error) {
@@ -71,15 +72,15 @@ export class ArticleController {
     @UploadedFile() file,
     @Body() editArticleDTO: EditArticleDTO,
     @GetAdmin() admin: CurrentUser,
-  ): Promise<Article> {
+  ): Promise<ArticleResponse> {
     console.log(file);
     return this.articlesService.editArticle(editArticleDTO, file, admin);
   }
 
   @UseGuards(AdminJwtAuthGuard)
   @Delete('deleteArticle/:id')
-  async deleteArticle(@Param() id: number): Promise<void> {
-    return this.deleteArticle(id);
+  async deleteArticle(@Param() id: number): Promise<{ message: string }> {
+    return this.articlesService.deleteArticle(id);
   }
 
   @Get(':imgpath')

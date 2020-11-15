@@ -5,10 +5,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminsService } from 'src/admins/admins.service';
+import { CurrentUser } from 'src/interfaces/current-user.interface';
 import { Repository } from 'typeorm';
 import { Category } from './category.entity';
 import { CreateCategoryDTO } from './dto/create-category.dto';
 import { EditCategoryDTO } from './dto/edit-category.dto';
+import CategoryResponse from './interfaces/category.interface';
 
 @Injectable()
 export class CategoriesService {
@@ -29,7 +31,7 @@ export class CategoriesService {
   async createCategory(
     createCategoryDTO: CreateCategoryDTO,
     user: any,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
@@ -42,18 +44,31 @@ export class CategoriesService {
     } catch (error) {
       console.error(error);
     }
+    return {
+      message: 'عملیات با موفقیت انجام شد.',
+    };
   }
 
-  async editCategory(editCategoryDTO: EditCategoryDTO): Promise<Category> {
+  async editCategory(
+    editCategoryDTO: EditCategoryDTO,
+    user: CurrentUser,
+  ): Promise<CategoryResponse> {
     const category = await this.categoryRepository.findOne(editCategoryDTO.id);
     if (!category) throw new NotFoundException('دسته بندی مورد نظر یافت نشد.');
+    const admin = await this.adminsService.findOne(user.username);
+    if (!admin)
+      throw new UnauthorizedException('شما به این عملیات دسترسی ندارید.');
     category.title = editCategoryDTO.title;
+    category.editor = admin;
     try {
       await category.save();
     } catch (error) {
       console.error(error);
     }
-    return category;
+    return {
+      category,
+      message: 'عملیات با موفقیت انجام شد.',
+    };
   }
 
   async deleteCategory(id: number): Promise<void> {

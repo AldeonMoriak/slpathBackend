@@ -13,6 +13,7 @@ import { Article } from './article.entity';
 import { CreateArticleDTO } from './dto/create-article.dto';
 import { EditArticleDTO } from './dto/edit-article.dto';
 import * as sharp from 'sharp';
+import ArticleResponse from './interfaces/article.interface';
 
 @Injectable()
 export class ArticleService {
@@ -34,7 +35,7 @@ export class ArticleService {
     createArticleDTO: CreateArticleDTO,
     file: any,
     user: CurrentUser,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
       throw new UnauthorizedException('شما دسترسی به این عملیات ندارید.');
@@ -81,13 +82,17 @@ export class ArticleService {
     } catch (error) {
       console.log(error);
     }
+
+    return {
+      message: 'عملیات با موفقیت انجام شد.',
+    };
   }
 
   async editArticle(
     editArticleDTO: EditArticleDTO,
     file: any,
     user: CurrentUser,
-  ): Promise<Article> {
+  ): Promise<ArticleResponse> {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
       throw new UnauthorizedException('شما دسترسی به این عملیات ندارید.');
@@ -122,12 +127,18 @@ export class ArticleService {
       return error;
     }
 
-    return article;
+    return {
+      article,
+      message: 'عملیات با موفقیت انجام شد.',
+    };
   }
 
-  async deleteArticle(id: number): Promise<void> {
+  async deleteArticle(id: number): Promise<{ message: string }> {
     const article = await this.articleRepository.findOne(id);
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
     await this.articleRepository.delete(id);
+    return {
+      message: 'عملیات با موفقیت انجام شد.',
+    };
   }
 }

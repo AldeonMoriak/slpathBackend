@@ -4,9 +4,10 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   host: 'localhost',
   port: 3306,
   username: 'root',
-  password: 'password',
+  password: 'Password',
   database: 'slpath',
   entities: [__dirname + '/../**/*.entity.{ts,js}'],
+  extra: { charset: 'utf8_general_ci' },
   // TODO: synchronize must be false in production phase
   synchronize: true,
 };
