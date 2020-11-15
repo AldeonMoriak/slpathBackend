@@ -25,6 +25,7 @@ export class TagsService {
   }
 
   async findAll(): Promise<any[]> {
+<<<<<<< HEAD
     return this.tagRepository
       .createQueryBuilder('tag')
       .select()
@@ -33,6 +34,12 @@ export class TagsService {
       .leftJoin('tag.editor', 'editor')
       .addSelect('editor.name')
       .getMany();
+=======
+    return this.tagRepository.find({
+      relations: ['admin', 'editor'],
+      select: ['admin.name', 'tag'],
+    });
+>>>>>>> fdb1a2f13893c396da521f6bc48f72ccc179a0d9
   }
 
   async createTag(
