@@ -6,11 +6,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminsService } from 'src/admins/admins.service';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
-import { Repository } from 'typeorm';
+import { Repository, Timestamp } from 'typeorm';
 import { CreateTagDTO } from './dto/create-tag.dto';
 import { EditTagDTO } from './dto/edit-tag.dto';
 import TagResponse from './interfaces/tag.interface';
 import { Tag } from './tag.entity';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class TagsService {
@@ -61,7 +62,10 @@ export class TagsService {
     editTagDTO: EditTagDTO,
     user: CurrentUser,
   ): Promise<TagResponse> {
-    const tag = await this.tagRepository.findOne(editTagDTO.id);
+    const tag = await this.tagRepository.findOne(editTagDTO.id, {
+      relations: ['admin', 'editor'],
+    });
+
     if (!tag) throw new NotFoundException('تگ مورد نظر یافت نشد.');
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
@@ -69,20 +73,28 @@ export class TagsService {
     tag.title = editTagDTO.title;
     tag.editor = admin;
 
-    tag.updateDateTime = Date.now();
+    const now = DateTime.utc().toISO() as unknown;
+
+    tag.updateDateTime = now as Timestamp;
 
     try {
       await tag.save();
     } catch (error) {
       console.error(error);
     }
-    // const adminName = tag.admin.name;
-    // const editorName = tag.editor.name;
-    console.log(tag);
-    delete tag.admin;
-    delete tag.editor;
-    // tag.editor['name'] = editorName;
-    // tag.admin['name'] = adminName;
+    delete tag.admin.password;
+    delete tag.editor.password;
+    delete tag.admin.email;
+    delete tag.editor.email;
+    delete tag.admin.createdDateTime;
+    delete tag.editor.createdDateTime;
+    delete tag.admin.isActive;
+    delete tag.editor.isActive;
+    delete tag.admin.id;
+    delete tag.editor.id;
+    delete tag.admin.username;
+    delete tag.editor.username;
+
     return {
       tag,
       message: 'عملیات با موفقیت انجام شد.',

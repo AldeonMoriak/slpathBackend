@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -36,7 +35,7 @@ export class TagsController {
     return this.tagsService.createTag(createTagDTO, admin);
   }
 
-  @Patch('editTag')
+  @Post('editTag')
   async editTag(
     @Body() editTagDTO: EditTagDTO,
     @GetAdmin() user: CurrentUser,

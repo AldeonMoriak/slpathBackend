@@ -7,7 +7,7 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   password: 'Password',
   database: 'slpath',
   entities: [__dirname + '/../**/*.entity.{ts,js}'],
-  extra: { charset: 'utf8_general_ci' },
+  extra: { charset: 'utf8mb4_general_ci' },
   // TODO: synchronize must be false in production phase
   synchronize: true,
 };

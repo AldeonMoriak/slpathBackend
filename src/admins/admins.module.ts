@@ -15,7 +15,7 @@ import { AdminsService } from './admins.service';
     UsersModule,
     JwtModule.register({
       secret: jwtConstants.adminSecret,
-      signOptions: { expiresIn: '60m', audience: 'admin' },
+      signOptions: { expiresIn: '6m', audience: 'admin' },
     }),
   ],
   controllers: [AdminsController],
