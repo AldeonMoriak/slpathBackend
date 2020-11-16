@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -35,7 +34,7 @@ export class CategoriesController {
     return this.categoriesService.createCategory(createCategoryDTO, admin);
   }
 
-  @Patch('editCategory')
+  @Post('editCategory')
   async editCategory(
     @Body() editCategoryDTO: EditCategoryDTO,
     @GetAdmin() user: CurrentUser,

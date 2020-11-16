@@ -26,7 +26,15 @@ export class ArticleService {
   ) {}
 
   async getAllArticles(): Promise<Article[]> {
-    const articles = await this.articleRepository.find();
+    const articles = await this.articleRepository
+      .createQueryBuilder('article')
+      .select()
+      .leftJoin('article.admin', 'admin')
+      .addSelect('admin.name')
+      .leftJoin('article.editor', 'editor')
+      .addSelect('editor.name')
+      .getMany();
+
     articles.map((article) => delete article.content);
     return articles;
   }

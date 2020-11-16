@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   Res,
   UploadedFile,
@@ -58,7 +57,7 @@ export class ArticleController {
   }
 
   @UseGuards(AdminJwtAuthGuard)
-  @Patch('editeArticle')
+  @Post('editeArticle')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({

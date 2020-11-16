@@ -4,9 +4,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DateTime } from 'luxon';
 import { AdminsService } from 'src/admins/admins.service';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
-import { Repository } from 'typeorm';
+import { Repository, Timestamp } from 'typeorm';
 import { Category } from './category.entity';
 import { CreateCategoryDTO } from './dto/create-category.dto';
 import { EditCategoryDTO } from './dto/edit-category.dto';
@@ -25,7 +26,14 @@ export class CategoriesService {
   }
 
   async getAllCategories(): Promise<Category[]> {
-    return this.categoryRepository.find();
+    return this.categoryRepository
+      .createQueryBuilder('category')
+      .select()
+      .leftJoin('category.admin', 'admin')
+      .addSelect('admin.name')
+      .leftJoin('category.editor', 'editor')
+      .addSelect('editor.name')
+      .getMany();
   }
 
   async createCategory(
@@ -60,6 +68,10 @@ export class CategoriesService {
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید.');
     category.title = editCategoryDTO.title;
     category.editor = admin;
+
+    const now = DateTime.utc().toISO() as unknown;
+
+    category.updateDateTime = now as Timestamp;
     try {
       await category.save();
     } catch (error) {

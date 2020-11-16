@@ -30,6 +30,6 @@ export class Category extends BaseEntity {
   @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
   createdDateTime: Timestamp;
 
-  @Column({ nullable: true, type: 'timestamp' })
+  @Column({ nullable: true, type: 'timestamp', onUpdate: 'CURRENT_TIMESTAMP' })
   updateDateTime: Timestamp;
 }
