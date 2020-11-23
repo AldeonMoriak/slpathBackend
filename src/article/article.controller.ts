@@ -47,7 +47,7 @@ export class ArticleController {
   async createArticle(
     @UploadedFile() file,
     @Body() createArticleDTO: CreateArticleDTO,
-    @GetAdmin() admin: any,
+    @GetAdmin() admin: CurrentUser,
   ): Promise<{ message: string }> {
     try {
       return this.articlesService.createArticle(createArticleDTO, file, admin);
@@ -57,23 +57,27 @@ export class ArticleController {
   }
 
   @UseGuards(AdminJwtAuthGuard)
-  @Post('editeArticle')
+  @Post('editArticle')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: 'uploads/',
+        destination: 'uploads/images/',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
     }),
   )
   async editArticle(
-    @UploadedFile() file,
-    @Body() editArticleDTO: EditArticleDTO,
     @GetAdmin() admin: CurrentUser,
+    @Body() editArticleDTO: EditArticleDTO,
+    @UploadedFile() file?,
   ): Promise<ArticleResponse> {
-    console.log(file);
-    return this.articlesService.editArticle(editArticleDTO, file, admin);
+    return this.articlesService.editArticle(admin, editArticleDTO, file);
+  }
+
+  @Get(':id')
+  async getArticle(@Param('id') id): Promise<Article> {
+    return this.articlesService.getArticle(id);
   }
 
   @UseGuards(AdminJwtAuthGuard)
@@ -82,8 +86,12 @@ export class ArticleController {
     return this.articlesService.deleteArticle(id);
   }
 
-  @Get(':imgpath')
-  seeUploadedFile(@Param('imgpath') image, @Res() res: Response) {
-    return res.sendFile(image, { root: 'uploads/' });
+  @Get('image/:imgpath')
+  seeUploadedFile(@Param('imgpath') image: string, @Res() res: Response) {
+    return res.sendFile(image, {
+      root: image.includes('thumbnail')
+        ? 'uploads/thumbnails/'
+        : 'uploads/images/',
+    });
   }
 }

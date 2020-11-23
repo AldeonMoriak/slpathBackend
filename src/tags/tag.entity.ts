@@ -3,10 +3,12 @@ import {
   BaseEntity,
   Column,
   Entity,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   Timestamp,
 } from 'typeorm';
+import { Article } from 'src/article/article.entity';
 
 @Entity()
 export class Tag extends BaseEntity {
@@ -27,4 +29,7 @@ export class Tag extends BaseEntity {
 
   @Column({ nullable: true, type: 'timestamp' })
   updateDateTime: Timestamp;
+
+  @ManyToMany(() => Article, (article) => article.tags, { nullable: true })
+  articles: Article[];
 }

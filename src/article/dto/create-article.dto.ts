@@ -7,7 +7,7 @@ export class CreateArticleDTO {
   description: string;
   @MinLength(50, { message: 'محتوا باید بیشتر از ۵۰ حرف باشد.' })
   content: string;
-  categoryId?: number;
-  tags?: number[];
+  categoryId?: string;
+  tags?: string;
   referenceUrl?: string;
 }

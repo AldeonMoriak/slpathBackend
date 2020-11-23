@@ -48,9 +48,12 @@ export class Article extends BaseEntity {
   createdDateTime: Timestamp;
 
   @Column({ nullable: true, type: 'timestamp' })
-  updatedDateTime: Timestamp;
+  updateDateTime: Timestamp;
 
-  @ManyToMany(() => Tag, { nullable: true })
+  @ManyToMany(() => Tag, (tag) => tag.articles, {
+    nullable: true,
+    cascade: true,
+  })
   @JoinTable()
   tags: Tag[];
 }
