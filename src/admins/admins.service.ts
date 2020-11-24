@@ -46,6 +46,7 @@ export class AdminsService {
     try {
       await admin.save();
     } catch (error) {
+      console.error(error);
       if (error.errno === 1062) {
         throw new ConflictException('این کاربر قبلا ثبت نام کرده است.');
       }
