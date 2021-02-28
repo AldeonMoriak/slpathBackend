@@ -1,5 +1,6 @@
 import {
   Injectable,
+  InternalServerErrorException,
   NotAcceptableException,
   NotFoundException,
   UnauthorizedException,
@@ -138,7 +139,7 @@ export class ArticleService {
     if (!admin)
       throw new UnauthorizedException('شما دسترسی به این عملیات ندارید.');
     const article = await this.articleRepository.findOne(editArticleDTO.id, {
-      relations: ['tags'],
+      relations: ['tags', 'admin', 'editor'],
     });
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
     let category: Category = null;
@@ -162,8 +163,9 @@ export class ArticleService {
         .catch((err) => {
           console.log(err);
         });
-      article.imageUrl = file.path;
+      article.imageUrl = file.filename;
       article.thumbnailUrl = 'thumbnail-' + file.filename;
+      console.log(file);
     }
     article.referenceUrl = editArticleDTO.referenceUrl;
     article.title = editArticleDTO.title;
@@ -171,6 +173,7 @@ export class ArticleService {
     article.description = editArticleDTO.description;
     article.content = editArticleDTO.content;
     const now = DateTime.utc().toISO() as unknown;
+    article.editor = admin;
 
     article.updateDateTime = now as Timestamp;
 
@@ -194,6 +197,7 @@ export class ArticleService {
           .add(resTags);
       } catch (error) {
         console.error(error);
+        throw new InternalServerErrorException(error);
       }
     }
 

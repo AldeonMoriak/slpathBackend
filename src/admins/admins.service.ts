@@ -90,6 +90,7 @@ export class AdminsService {
     try {
       await entityManager.save(admin);
     } catch (error) {
+      console.error(error);
       if (error.errno === 1062) {
         throw new ConflictException('این کاربر قبلا ثبت نام کرده است.');
       }
