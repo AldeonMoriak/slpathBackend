@@ -1,8 +1,8 @@
+import { Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Article } from '../article/article.entity';
 import { Category } from '../categories/category.entity';
 import { Tag } from '../tags/tag.entity';
 import { User } from '../users/user.entity';
-import { Entity, OneToMany } from 'typeorm';
 
 @Entity()
 export class Admin extends User {
@@ -14,4 +14,7 @@ export class Admin extends User {
 
   @OneToMany(() => Tag, (tag) => tag.admin)
   tag: Tag;
+
+  @ManyToOne(() => Admin, (admin) => admin.id)
+  createdBy: Admin;
 }

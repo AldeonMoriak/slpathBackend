@@ -2,15 +2,20 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginUserDTO } from 'src/auth/dto/login-user.dto';
 import { SignupUserDTO } from 'src/auth/dto/signup-user.dto';
 import { User } from 'src/users/user.entity';
 import { UsersService } from 'src/users/users.service';
-import { Repository } from 'typeorm';
+import { getManager, Repository } from 'typeorm';
 import { Admin } from './admin.entity';
 import * as bcrypt from 'bcrypt';
+import { CurrentUser } from 'src/interfaces/current-user.interface';
+import * as sharp from 'sharp';
+import { EditProfileDTO } from './dto/edit-profile.dto';
 
 @Injectable()
 export class AdminsService {
@@ -19,8 +24,18 @@ export class AdminsService {
     private adminRepository: Repository<Admin>,
     private usersService: UsersService,
   ) {}
-  findAll(): Promise<Admin[]> {
-    return this.adminRepository.find();
+
+  async findAll(): Promise<Admin[]> {
+    const admins = await this.adminRepository
+      .createQueryBuilder('admin')
+      .select()
+      .leftJoin('admin.createdBy', 'creator')
+      .addSelect('creator.name')
+      .getMany();
+
+    admins.map((admin) => delete admin.password);
+
+    return admins;
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -35,20 +50,98 @@ export class AdminsService {
     });
   }
 
-  async signup(signupUserDTO: SignupUserDTO): Promise<any> {
+  async signup(
+    signupUserDTO: SignupUserDTO,
+    file: any,
+    user: CurrentUser,
+  ): Promise<{ message: string }> {
+    const adminUser = await this.findOne(user.username);
+    if (!adminUser)
+      throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
     const { email, name, password, username } = signupUserDTO;
     const admin = new Admin();
     admin.email = email;
     admin.name = name;
     admin.password = await bcrypt.hash(password, await bcrypt.genSalt(10));
     admin.username = username;
+    admin.createdBy = adminUser;
+    admin.profilePictureUrl = null;
+    admin.profilePictureThumbnailUrl = null;
+    if (file) {
+      const image = sharp('uploads/profiles/' + file.filename);
+      image
+        .resize({
+          width: 300,
+          fit: sharp.fit.contain,
+          background: { r: 255, g: 255, b: 255, alpha: 0.5 },
+        })
+        .toFile('uploads/thumbnails/profile-thumbnail-' + file.filename)
+        .then((info) => {
+          console.log(info);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      admin.profilePictureUrl = file.filename;
+      admin.profilePictureThumbnailUrl = 'profile-thumbnail-' + file.filename;
+    }
 
+    const entityManager = getManager();
     try {
-      await admin.save();
+      await entityManager.save(admin);
     } catch (error) {
       if (error.errno === 1062) {
         throw new ConflictException('این کاربر قبلا ثبت نام کرده است.');
       }
+      throw new InternalServerErrorException();
+    }
+
+    return {
+      message: 'عملیات موفقیت آمیز بود.',
+    };
+  }
+
+  async editProfile(
+    editProfileDTO: EditProfileDTO,
+    file: any,
+    user: CurrentUser,
+  ): Promise<{ message: string }> {
+    const adminUser = await this.findOne(user.username);
+    if (!adminUser)
+      throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
+    const { email, name, password } = editProfileDTO;
+    if (!adminUser) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
+    if (name) adminUser.name = name;
+    if (email) adminUser.email = email;
+    if (password)
+      adminUser.password = await bcrypt.hash(
+        password,
+        await bcrypt.genSalt(10),
+      );
+    if (file) {
+      const image = sharp('uploads/profiles/' + file.filename);
+      image
+        .resize({
+          width: 300,
+          fit: sharp.fit.contain,
+          background: { r: 255, g: 255, b: 255, alpha: 0.5 },
+        })
+        .toFile('uploads/thumbnails/profile-thumbnail-' + file.filename)
+        .then((info) => {
+          console.log(info);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      adminUser.profilePictureUrl = file.filename;
+      adminUser.profilePictureThumbnailUrl =
+        'profile-thumbnail-' + file.filename;
+    }
+
+    const entityManager = getManager();
+    try {
+      await entityManager.save(adminUser);
+    } catch (error) {
       throw new InternalServerErrorException();
     }
 

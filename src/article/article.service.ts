@@ -34,6 +34,7 @@ export class ArticleService {
       .select()
       .leftJoin('article.admin', 'admin')
       .addSelect('admin.name')
+      .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoin('article.editor', 'editor')
       .addSelect('editor.name')
       .getMany();
@@ -50,6 +51,7 @@ export class ArticleService {
       .where({ id: id })
       .leftJoin('article.admin', 'admin')
       .addSelect('admin.name')
+      .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoin('article.editor', 'editor')
       .addSelect('editor.name')
       .leftJoinAndSelect('article.tags', 'tags')

@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt';
 import {
   BaseEntity,
   Column,
@@ -6,7 +7,6 @@ import {
   Timestamp,
   Unique,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 
 @Entity()
 @Unique(['username', 'email'])
@@ -23,6 +23,10 @@ export class User extends BaseEntity {
   email: string;
   @Column({ default: true })
   isActive: boolean;
+  @Column({ nullable: true })
+  profilePictureUrl: string;
+  @Column({ nullable: true })
+  profilePictureThumbnailUrl: string;
   @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
   createdDateTime: Timestamp;
 
