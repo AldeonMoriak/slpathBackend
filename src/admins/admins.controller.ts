@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Put,
@@ -21,6 +22,7 @@ import { AdminsService } from './admins.service';
 import { EditProfileDTO } from './dto/edit-profile.dto';
 import { GetAdmin } from './get-admin.decorator';
 import { Response } from 'express';
+import { EditAdminDTO } from './dto/edit-admin.dto';
 
 @Controller()
 export class AdminsController {
@@ -58,6 +60,25 @@ export class AdminsController {
   }
 
   @UseGuards(AdminJwtAuthGuard)
+  @Put('admin/editAdmin')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: 'uploads/profiles/',
+        filename: editFileName,
+      }),
+      fileFilter: imageFileFilter,
+    }),
+  )
+  async editAdmin(
+    @GetAdmin() admin: CurrentUser,
+    @UploadedFile() file,
+    @Body() editAdminDTO: EditAdminDTO,
+  ): Promise<{ message: string }> {
+    return this.adminsService.editAdmin(editAdminDTO, file, admin);
+  }
+
+  @UseGuards(AdminJwtAuthGuard)
   @Get('admin/getProfile')
   async getUser(@GetAdmin() admin: CurrentUser): Promise<{ user: Admin }> {
     const user = await this.adminsService.findOne(admin.username);
@@ -65,6 +86,29 @@ export class AdminsController {
     return {
       user: user,
     };
+  }
+
+  @UseGuards(AdminJwtAuthGuard)
+  @Get('admin/getAdmin/:id')
+  async getAdmin(
+    @GetAdmin() admin: CurrentUser,
+    @Param('id') id: number,
+  ): Promise<{ user: Admin }> {
+    const user = await this.adminsService.findOne('', id);
+    delete user.password;
+    return {
+      user: user,
+    };
+  }
+
+  @UseGuards(AdminJwtAuthGuard)
+  @Delete('admin/deleteAdmin/:id')
+  async deleteAdmin(
+    @GetAdmin() admin: CurrentUser,
+    @Param('id') id: number,
+  ): Promise<{ message: string }> {
+    this.adminsService.remove(id);
+    return { message: 'عملیات موفقیت آمیز بود' };
   }
 
   @Get('image/:imgpath')

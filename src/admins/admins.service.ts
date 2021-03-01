@@ -16,6 +16,7 @@ import * as bcrypt from 'bcrypt';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
 import * as sharp from 'sharp';
 import { EditProfileDTO } from './dto/edit-profile.dto';
+import { EditAdminDTO } from './dto/edit-admin.dto';
 
 @Injectable()
 export class AdminsService {
@@ -28,7 +29,7 @@ export class AdminsService {
   async findAll(): Promise<Admin[]> {
     const admins = await this.adminRepository
       .createQueryBuilder('admin')
-      .select()
+      .where('admin.isActive = 1')
       .leftJoin('admin.createdBy', 'creator')
       .addSelect('creator.name')
       .getMany();
@@ -42,12 +43,18 @@ export class AdminsService {
     return this.usersService.findAll();
   }
 
-  findOne(username: string): Promise<Admin> {
-    return this.adminRepository.findOne({
-      where: {
-        username,
-      },
-    });
+  findOne(username: string, id?: number): Promise<Admin> {
+    return id
+      ? this.adminRepository.findOne({
+          where: {
+            id,
+          },
+        })
+      : this.adminRepository.findOne({
+          where: {
+            username,
+          },
+        });
   }
 
   async signup(
@@ -108,6 +115,23 @@ export class AdminsService {
     user: CurrentUser,
   ): Promise<{ message: string }> {
     const adminUser = await this.findOne(user.username);
+    return this.edit(adminUser, editProfileDTO, file);
+  }
+
+  async editAdmin(
+    editAdminDTO: EditAdminDTO,
+    file: any,
+    user: CurrentUser,
+  ): Promise<{ message: string }> {
+    const adminUser = await this.findOne(editAdminDTO.username);
+    return this.edit(adminUser, editAdminDTO, file);
+  }
+
+  private async edit(
+    adminUser: Admin,
+    editProfileDTO: EditProfileDTO,
+    file: any,
+  ) {
     if (!adminUser)
       throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
     const { email, name, password } = editProfileDTO;
@@ -151,8 +175,8 @@ export class AdminsService {
     };
   }
 
-  async remove(id: string): Promise<void> {
-    await this.adminRepository.update(id, { isActive: false });
+  async remove(id: number): Promise<void> {
+    await this.adminRepository.update({ id }, { isActive: false });
   }
 
   async validateUserPassword(loginUserDTO: LoginUserDTO): Promise<string> {
