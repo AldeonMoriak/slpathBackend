@@ -17,6 +17,7 @@ import { CurrentUser } from 'src/interfaces/current-user.interface';
 import * as sharp from 'sharp';
 import { EditProfileDTO } from './dto/edit-profile.dto';
 import { EditAdminDTO } from './dto/edit-admin.dto';
+import { ResponseMessage } from 'src/interfaces/response-message.interface';
 
 @Injectable()
 export class AdminsService {
@@ -61,7 +62,7 @@ export class AdminsService {
     signupUserDTO: SignupUserDTO,
     file: any,
     user: CurrentUser,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseMessage> {
     const adminUser = await this.findOne(user.username);
     if (!adminUser)
       throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
@@ -113,7 +114,7 @@ export class AdminsService {
     editProfileDTO: EditProfileDTO,
     file: any,
     user: CurrentUser,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseMessage> {
     const adminUser = await this.findOne(user.username);
     return this.edit(adminUser, editProfileDTO, file);
   }
@@ -122,7 +123,7 @@ export class AdminsService {
     editAdminDTO: EditAdminDTO,
     file: any,
     user: CurrentUser,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseMessage> {
     const adminUser = await this.findOne(editAdminDTO.username);
     return this.edit(adminUser, editAdminDTO, file);
   }
@@ -134,10 +135,11 @@ export class AdminsService {
   ) {
     if (!adminUser)
       throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
-    const { email, name, password } = editProfileDTO;
+    const { email, name, password, description } = editProfileDTO;
     if (!adminUser) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
     if (name) adminUser.name = name;
     if (email) adminUser.email = email;
+    if (description) adminUser.description = description;
     if (password)
       adminUser.password = await bcrypt.hash(
         password,

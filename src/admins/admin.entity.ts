@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Article } from '../article/article.entity';
 import { Category } from '../categories/category.entity';
 import { Tag } from '../tags/tag.entity';
@@ -17,4 +17,7 @@ export class Admin extends User {
 
   @ManyToOne(() => Admin, (admin) => admin.id)
   createdBy: Admin;
+
+  @Column({ nullable: true })
+  description?: string;
 }

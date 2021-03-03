@@ -18,6 +18,7 @@ import * as sharp from 'sharp';
 import ArticleResponse from './interfaces/article.interface';
 import { Category } from 'src/categories/category.entity';
 import { DateTime } from 'luxon';
+import { ResponseMessage } from 'src/interfaces/response-message.interface';
 
 @Injectable()
 export class ArticleService {
@@ -28,6 +29,10 @@ export class ArticleService {
     private categoriesService: CategoriesService,
     private tagsService: TagsService,
   ) {}
+
+  async findOne(id: number): Promise<Article> {
+    return this.articleRepository.findOne(id);
+  }
 
   async getAllArticles(): Promise<Article[]> {
     const articles = await this.articleRepository
@@ -57,6 +62,7 @@ export class ArticleService {
       .addSelect('editor.name')
       .leftJoinAndSelect('article.tags', 'tags')
       .leftJoinAndSelect('article.category', 'category')
+      .leftJoinAndSelect('article.comment', 'comments')
       .getOne();
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد');
     return article;
@@ -66,7 +72,7 @@ export class ArticleService {
     createArticleDTO: CreateArticleDTO,
     file: any,
     user: CurrentUser,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseMessage> {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
       throw new UnauthorizedException('شما دسترسی به این عملیات ندارید.');
@@ -206,7 +212,7 @@ export class ArticleService {
     };
   }
 
-  async deleteArticle(id: number): Promise<{ message: string }> {
+  async deleteArticle(id: number): Promise<ResponseMessage> {
     const article = await this.articleRepository.findOne(id);
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
     await this.articleRepository.delete(id);

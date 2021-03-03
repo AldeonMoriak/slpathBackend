@@ -30,4 +30,8 @@ export class EditProfileDTO {
       'رمز عبور بسیار ضعیف است و باید متشکل از یک حرف بزرگ، یک عدد و یک علامت باشد.',
   })
   password?: string;
+
+  @MinLength(20, { message: 'تعداد کاراکتر ها باید بیشتر از ۲۰ باشد' })
+  @MaxLength(184, { message: 'حداکثر تعداد کاراکتر ها باید ۱۸۴ باشد' })
+  description: string;
 }

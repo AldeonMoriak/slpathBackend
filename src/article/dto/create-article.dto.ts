@@ -1,4 +1,4 @@
-import { IsEmpty, IsNotEmpty, MinLength } from 'class-validator';
+import { IsNotEmpty, MinLength } from 'class-validator';
 
 export class CreateArticleDTO {
   @IsNotEmpty({ message: 'لطفا یک عنوان وارد کنید.' })

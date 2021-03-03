@@ -1,4 +1,5 @@
 import { Admin } from 'src/admins/admin.entity';
+import { Comment } from 'src/comments/comment.entity';
 import {
   BaseEntity,
   Column,
@@ -6,6 +7,7 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Timestamp,
 } from 'typeorm';
@@ -56,4 +58,7 @@ export class Article extends BaseEntity {
   })
   @JoinTable()
   tags: Tag[];
+
+  @OneToMany(() => Comment, (comment) => comment.article)
+  comment: Comment;
 }

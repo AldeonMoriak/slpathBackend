@@ -23,6 +23,7 @@ import { EditProfileDTO } from './dto/edit-profile.dto';
 import { GetAdmin } from './get-admin.decorator';
 import { Response } from 'express';
 import { EditAdminDTO } from './dto/edit-admin.dto';
+import { ResponseMessage } from 'src/interfaces/response-message.interface';
 
 @Controller()
 export class AdminsController {
@@ -55,7 +56,7 @@ export class AdminsController {
     @GetAdmin() admin: CurrentUser,
     @UploadedFile() file,
     @Body() editProfileDTO: EditProfileDTO,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseMessage> {
     return this.adminsService.editProfile(editProfileDTO, file, admin);
   }
 
@@ -74,7 +75,7 @@ export class AdminsController {
     @GetAdmin() admin: CurrentUser,
     @UploadedFile() file,
     @Body() editAdminDTO: EditAdminDTO,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseMessage> {
     return this.adminsService.editAdmin(editAdminDTO, file, admin);
   }
 
@@ -106,7 +107,7 @@ export class AdminsController {
   async deleteAdmin(
     @GetAdmin() admin: CurrentUser,
     @Param('id') id: number,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseMessage> {
     this.adminsService.remove(id);
     return { message: 'عملیات موفقیت آمیز بود' };
   }
