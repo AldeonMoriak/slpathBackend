@@ -30,4 +30,13 @@ export class CommentsController {
   ): Promise<ResponseMessage> {
     return this.commentsService.create(createCommentDTO, admin);
   }
+
+  @UseGuards(AdminJwtAuthGuard)
+  @Post('/insertCommentForAdmin')
+  async createCommentForAdmin(
+    @Body() createCommentDTO: CreateCommentDTO,
+    @GetAdmin() admin: CurrentUser,
+  ): Promise<ResponseMessage> {
+    return this.commentsService.create(createCommentDTO, admin);
+  }
 }

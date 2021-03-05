@@ -44,7 +44,7 @@ export class AdminsService {
     return this.usersService.findAll();
   }
 
-  findOne(username: string, id?: number): Promise<Admin> {
+  async findOne(username: string, id?: number): Promise<Admin> {
     return id
       ? this.adminRepository.findOne({
           where: {

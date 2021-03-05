@@ -34,12 +34,31 @@ export class ArticleService {
     return this.articleRepository.findOne(id);
   }
 
+  async getAdminArticles(username: string): Promise<Article[]> {
+    const admin = await this.adminsService.findOne(username);
+    if (!admin) throw new NotFoundException('نویسنده مورد نظر یافت نشد');
+    const articles = await this.articleRepository
+      .createQueryBuilder('article')
+      .select()
+      .leftJoin('article.admin', 'admin')
+      .where('admin.username = :username', { username })
+      .addSelect('admin.name')
+      .addSelect('admin.username')
+      .addSelect('admin.description')
+      .addSelect('admin.profilePictureThumbnailUrl')
+      .getMany();
+
+    articles.map((article) => delete article.content);
+    return articles;
+  }
+
   async getAllArticles(): Promise<Article[]> {
     const articles = await this.articleRepository
       .createQueryBuilder('article')
       .select()
       .leftJoin('article.admin', 'admin')
       .addSelect('admin.name')
+      .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoin('article.editor', 'editor')
       .addSelect('editor.name')
@@ -50,13 +69,13 @@ export class ArticleService {
   }
 
   async getArticle(id: number): Promise<Article> {
-    console.log(id);
     const article = await this.articleRepository
       .createQueryBuilder('article')
       .select()
       .where({ id: id })
       .leftJoin('article.admin', 'admin')
       .addSelect('admin.name')
+      .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoin('article.editor', 'editor')
       .addSelect('editor.name')

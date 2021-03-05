@@ -33,6 +33,13 @@ export class ArticleController {
     return this.articlesService.getAllArticles();
   }
 
+  @Get('/getPosts/:username')
+  async getAdminArticles(
+    @Param('username') username: string,
+  ): Promise<Article[]> {
+    return this.articlesService.getAdminArticles(username);
+  }
+
   @UseGuards(AdminJwtAuthGuard)
   @Post('createArticle')
   @UseInterceptors(
@@ -75,7 +82,7 @@ export class ArticleController {
     return this.articlesService.editArticle(admin, editArticleDTO, file);
   }
 
-  @Get(':id')
+  @Get('/getPost/:id')
   async getArticle(@Param('id') id): Promise<Article> {
     return this.articlesService.getArticle(id);
   }

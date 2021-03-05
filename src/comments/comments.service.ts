@@ -27,6 +27,8 @@ export class CommentsService {
       .leftJoin('comment.article', 'article')
       .where('article.id = :id', { id: id })
       .addSelect('article.id')
+      .leftJoin('comment.parent', 'parent')
+      .addSelect('parent.id')
       .getMany();
   }
 
@@ -59,6 +61,7 @@ export class CommentsService {
       if (user) {
         const admin = await this.adminsService.findOne(user.username);
         comment.isAdmin = admin ? true : false;
+        comment.isActive = admin ? true : false;
       }
       comment.parent = parent;
     }
