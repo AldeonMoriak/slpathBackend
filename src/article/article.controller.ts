@@ -16,17 +16,25 @@ import { diskStorage } from 'multer';
 import { AdminJwtAuthGuard } from 'src/admins/admin-jwt-auth.guard';
 import { GetAdmin } from 'src/admins/get-admin.decorator';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
+import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import { editFileName } from 'src/utils/edit-file-name';
 import { imageFileFilter } from 'src/utils/image-file-filter';
 import { Article } from './article.entity';
 import { ArticleService } from './article.service';
 import { CreateArticleDTO } from './dto/create-article.dto';
 import { EditArticleDTO } from './dto/edit-article.dto';
-import ArticleResponse from './interfaces/article.interface';
 
 @Controller('articles')
 export class ArticleController {
   constructor(private articlesService: ArticleService) {}
+
+  @UseGuards(AdminJwtAuthGuard)
+  @Get('getArticles')
+  async getAdminAllArticles(
+    @GetAdmin() admin: CurrentUser,
+  ): Promise<Article[]> {
+    return this.articlesService.getAllAdminArticles(admin);
+  }
 
   @Get('getAll')
   async getAllArticles(): Promise<Article[]> {
@@ -55,7 +63,7 @@ export class ArticleController {
     @UploadedFile() file,
     @Body() createArticleDTO: CreateArticleDTO,
     @GetAdmin() admin: CurrentUser,
-  ): Promise<{ message: string }> {
+  ): Promise<ResponseMessage> {
     try {
       return this.articlesService.createArticle(createArticleDTO, file, admin);
     } catch (error) {
@@ -78,18 +86,23 @@ export class ArticleController {
     @GetAdmin() admin: CurrentUser,
     @Body() editArticleDTO: EditArticleDTO,
     @UploadedFile() file?,
-  ): Promise<ArticleResponse> {
+  ): Promise<ResponseMessage> {
     return this.articlesService.editArticle(admin, editArticleDTO, file);
   }
 
   @Get('/getPost/:id')
+  async getArticleForAdmin(@Param('id') id): Promise<Article> {
+    return this.articlesService.getArticle(id);
+  }
+
+  @Get('/getBlogPost/:id')
   async getArticle(@Param('id') id): Promise<Article> {
     return this.articlesService.getArticle(id);
   }
 
   @UseGuards(AdminJwtAuthGuard)
   @Delete('deleteArticle/:id')
-  async deleteArticle(@Param() id: number): Promise<{ message: string }> {
+  async deleteArticle(@Param() id: number): Promise<ResponseMessage> {
     return this.articlesService.deleteArticle(id);
   }
 

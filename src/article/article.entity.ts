@@ -61,4 +61,7 @@ export class Article extends BaseEntity {
 
   @OneToMany(() => Comment, (comment) => comment.article)
   comment: Comment;
+
+  @Column({ default: 0 })
+  views: number;
 }

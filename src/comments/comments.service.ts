@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminsService } from 'src/admins/admins.service';
 import { ArticleService } from 'src/article/article.service';
+import { CommentInterface } from 'src/interfaces/comment.interface';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
 import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import { Repository } from 'typeorm';
@@ -21,15 +22,30 @@ export class CommentsService {
     private adminsService: AdminsService,
   ) {}
 
-  async getAllCommentsForArticle(id: number): Promise<Comment[]> {
-    return this.commentRepository
+  async getAllCommentsForArticle(id: number): Promise<CommentInterface[]> {
+    const comments = await this.commentRepository
       .createQueryBuilder('comment')
-      .leftJoin('comment.article', 'article')
-      .where('article.id = :id', { id: id })
+      .innerJoin('comment.article', 'article')
       .addSelect('article.id')
-      .leftJoin('comment.parent', 'parent')
-      .addSelect('parent.id')
+      .where('article.id = :id', { id })
+      .andWhere('comment.parent is NULL')
       .getMany();
+
+    const commentsWithReplies: CommentInterface[] = [...comments];
+    await Promise.all(
+      commentsWithReplies.map(async (cmt, index) => {
+        // commentsWithReplies[index].replies = [];
+        commentsWithReplies[
+          index
+        ].replies = await this.commentRepository
+          .createQueryBuilder('comment')
+          .innerJoin('comment.parent', 'parent')
+          .addSelect('parent.id')
+          .where('parent.id = :id', { id: cmt.id })
+          .getMany();
+      }),
+    );
+    return commentsWithReplies;
   }
 
   async toggleActive(id: number): Promise<ResponseMessage> {

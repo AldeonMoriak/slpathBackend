@@ -15,10 +15,10 @@ import { Article } from './article.entity';
 import { CreateArticleDTO } from './dto/create-article.dto';
 import { EditArticleDTO } from './dto/edit-article.dto';
 import * as sharp from 'sharp';
-import ArticleResponse from './interfaces/article.interface';
 import { Category } from 'src/categories/category.entity';
 import { DateTime } from 'luxon';
 import { ResponseMessage } from 'src/interfaces/response-message.interface';
+import ArticleInterface from './interfaces/article.interface';
 
 @Injectable()
 export class ArticleService {
@@ -52,7 +52,7 @@ export class ArticleService {
     return articles;
   }
 
-  async getAllArticles(): Promise<Article[]> {
+  async getAllAdminArticles(user: CurrentUser): Promise<Article[]> {
     const articles = await this.articleRepository
       .createQueryBuilder('article')
       .select()
@@ -60,6 +60,7 @@ export class ArticleService {
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
+      .where('admin.username = :username', { username: user.username })
       .leftJoin('article.editor', 'editor')
       .addSelect('editor.name')
       .getMany();
@@ -68,7 +69,53 @@ export class ArticleService {
     return articles;
   }
 
+  async getAllArticles(): Promise<Article[]> {
+    const articles = await this.articleRepository
+      .createQueryBuilder('article')
+      .select()
+      .leftJoin('article.admin', 'admin')
+      .addSelect('admin.name')
+      .addSelect('admin.username')
+      .addSelect('admin.profilePictureThumbnailUrl')
+      .getMany();
+
+    const fetchedArticles: ArticleInterface[] = [...articles];
+    await Promise.all(
+      fetchedArticles.map(async (article) => {
+        delete article.content;
+        const commetnsCount: {
+          count: number;
+        } = await this.articleRepository
+          .createQueryBuilder('article')
+          .innerJoin('article.comment', 'comment')
+          .select('COUNT(comment.id)', 'count')
+          .where('article.id = :id', { id: article.id })
+          .andWhere('comment.isActive = :value', { value: true })
+          .getRawOne();
+
+        article.commentCount = commetnsCount.count;
+        // article.commentCount = commetnsCount;
+      }),
+    );
+    return articles;
+  }
+
   async getArticle(id: number): Promise<Article> {
+    const article = await this.fetchArticle(id);
+    article.views = article.views + 1;
+    try {
+      await article.save();
+    } catch (error) {
+      throw new InternalServerErrorException('خطایی رخ داده است');
+    }
+    return article;
+  }
+
+  async getArticleForAdmin(id: number): Promise<Article> {
+    return this.fetchArticle(id);
+  }
+
+  private async fetchArticle(id: number): Promise<Article> {
     const article = await this.articleRepository
       .createQueryBuilder('article')
       .select()
@@ -94,7 +141,7 @@ export class ArticleService {
   ): Promise<ResponseMessage> {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
-      throw new UnauthorizedException('شما دسترسی به این عملیات ندارید.');
+      throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     let category: Category = null;
     if (createArticleDTO.categoryId) {
       const categoryId = JSON.parse(createArticleDTO.categoryId);
@@ -159,14 +206,16 @@ export class ArticleService {
     user: CurrentUser,
     editArticleDTO: EditArticleDTO,
     file?: any,
-  ): Promise<ArticleResponse> {
+  ): Promise<ResponseMessage> {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
-      throw new UnauthorizedException('شما دسترسی به این عملیات ندارید.');
+      throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     const article = await this.articleRepository.findOne(editArticleDTO.id, {
       relations: ['tags', 'admin', 'editor'],
     });
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
+    if (article.admin !== admin)
+      throw new UnauthorizedException('شما نویسنده این مقاله نیستید');
     let category: Category = null;
     if (editArticleDTO.categoryId) {
       const categoryId = JSON.parse(editArticleDTO.categoryId);
