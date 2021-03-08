@@ -23,6 +23,7 @@ import { Article } from './article.entity';
 import { ArticleService } from './article.service';
 import { CreateArticleDTO } from './dto/create-article.dto';
 import { EditArticleDTO } from './dto/edit-article.dto';
+import ArticleInterface from './interfaces/article.interface';
 
 @Controller('articles')
 export class ArticleController {
@@ -91,12 +92,12 @@ export class ArticleController {
   }
 
   @Get('/getPost/:id')
-  async getArticleForAdmin(@Param('id') id): Promise<Article> {
+  async getArticleForAdmin(@Param('id') id): Promise<ArticleInterface> {
     return this.articlesService.getArticle(id);
   }
 
   @Get('/getBlogPost/:id')
-  async getArticle(@Param('id') id): Promise<Article> {
+  async getArticle(@Param('id') id): Promise<ArticleInterface> {
     return this.articlesService.getArticle(id);
   }
 

@@ -10,14 +10,14 @@ import { CommentInterface } from 'src/interfaces/comment.interface';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
 import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import { Repository } from 'typeorm';
-import { Comment } from './comment.entity';
+import { Comment as CommentEntity } from './comment.entity';
 import { CreateCommentDTO } from './dto/create-comment.dto';
 
 @Injectable()
 export class CommentsService {
   constructor(
-    @InjectRepository(Comment)
-    private commentRepository: Repository<Comment>,
+    @InjectRepository(CommentEntity)
+    private commentRepository: Repository<CommentEntity>,
     private articleService: ArticleService,
     private adminsService: AdminsService,
   ) {}
@@ -66,7 +66,7 @@ export class CommentsService {
 
     const article = await this.articleService.findOne(articleId);
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد');
-    const comment = new Comment();
+    const comment = new CommentEntity();
     comment.email = email;
     comment.article = article;
     comment.content = content;

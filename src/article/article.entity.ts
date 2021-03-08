@@ -1,5 +1,5 @@
 import { Admin } from 'src/admins/admin.entity';
-import { Comment } from 'src/comments/comment.entity';
+import { Comment as CommentEntity } from 'src/comments/comment.entity';
 import {
   BaseEntity,
   Column,
@@ -59,8 +59,8 @@ export class Article extends BaseEntity {
   @JoinTable()
   tags: Tag[];
 
-  @OneToMany(() => Comment, (comment) => comment.article)
-  comment: Comment;
+  @OneToMany(() => CommentEntity, (comment) => comment.article)
+  comment: CommentEntity[];
 
   @Column({ default: 0 })
   views: number;

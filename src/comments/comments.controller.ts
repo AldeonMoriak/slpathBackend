@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AdminJwtAuthGuard } from 'src/admins/admin-jwt-auth.guard';
 import { CommentsService } from './comments.service';
-import { Comment } from './comment.entity';
+import { Comment as CommentEntity } from './comment.entity';
 import { CreateCommentDTO } from './dto/create-comment.dto';
 import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import { GetAdmin } from 'src/admins/get-admin.decorator';
@@ -13,7 +13,9 @@ export class CommentsController {
 
   @UseGuards(AdminJwtAuthGuard)
   @Get('/getAll/:id')
-  async getAllCommentsForArticle(@Param('id') id: number): Promise<Comment[]> {
+  async getAllCommentsForArticle(
+    @Param('id') id: number,
+  ): Promise<CommentEntity[]> {
     return this.commentsService.getAllCommentsForArticle(id);
   }
 

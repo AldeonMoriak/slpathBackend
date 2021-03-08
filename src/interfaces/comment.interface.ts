@@ -1,5 +1,5 @@
-import { Comment } from 'src/comments/comment.entity';
+import { Comment as CommentEntity } from 'src/comments/comment.entity';
 
-export interface CommentInterface extends Comment {
-  replies?: Comment[];
+export interface CommentInterface extends CommentEntity {
+  replies?: CommentEntity[];
 }

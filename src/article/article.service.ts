@@ -19,6 +19,7 @@ import { Category } from 'src/categories/category.entity';
 import { DateTime } from 'luxon';
 import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import ArticleInterface from './interfaces/article.interface';
+import { Comment as CommentEntity } from 'src/comments/comment.entity';
 
 @Injectable()
 export class ArticleService {
@@ -100,7 +101,7 @@ export class ArticleService {
     return articles;
   }
 
-  async getArticle(id: number): Promise<Article> {
+  async getArticle(id: number): Promise<ArticleInterface> {
     const article = await this.fetchArticle(id);
     article.views = article.views + 1;
     try {
@@ -111,11 +112,11 @@ export class ArticleService {
     return article;
   }
 
-  async getArticleForAdmin(id: number): Promise<Article> {
+  async getArticleForAdmin(id: number): Promise<ArticleInterface> {
     return this.fetchArticle(id);
   }
 
-  private async fetchArticle(id: number): Promise<Article> {
+  private async fetchArticle(id: number): Promise<ArticleInterface> {
     const article = await this.articleRepository
       .createQueryBuilder('article')
       .select()
@@ -124,14 +125,28 @@ export class ArticleService {
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
-      .leftJoin('article.editor', 'editor')
-      .addSelect('editor.name')
       .leftJoinAndSelect('article.tags', 'tags')
       .leftJoinAndSelect('article.category', 'category')
-      .leftJoinAndSelect('article.comment', 'comments')
+      .leftJoinAndSelect('article.comment', 'comment')
+      .where('comment.parent is Null')
       .getOne();
+
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد');
-    return article;
+    const fetchedArticle: ArticleInterface = article;
+    await Promise.all(
+      fetchedArticle.comment.map(async (cmt) => {
+        const replies = await getConnection()
+          .createQueryBuilder()
+          .select('comment')
+          .from(CommentEntity, 'comment')
+          .where('comment.parentId = :id', { id: cmt.id })
+          .getMany();
+
+        cmt.replies = replies;
+      }),
+    );
+
+    return fetchedArticle;
   }
 
   async createArticle(
