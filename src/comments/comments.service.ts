@@ -67,17 +67,23 @@ export class CommentsService {
     const article = await this.articleService.findOne(articleId);
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد');
     const comment = new CommentEntity();
-    comment.email = email;
+    comment.email = email ? email : null;
     comment.article = article;
     comment.content = content;
     comment.creator = name;
 
+    let message = 'نظر شما ثبت و پس از تایید ادمین نمایش داده خواهد شد.';
     if (parentId) {
-      const parent = await this.commentRepository.findOne(parentId);
+      let parent = await this.commentRepository.findOne(parentId, {
+        relations: ['parent'],
+      });
+      if (parent.parent.id)
+        parent = await this.commentRepository.findOne(parent.parent.id);
       if (user) {
         const admin = await this.adminsService.findOne(user.username);
         comment.isAdmin = admin ? true : false;
         comment.isActive = admin ? true : false;
+        message = 'عملیات موفقیت آمیز بود.';
       }
       comment.parent = parent;
     }
@@ -87,6 +93,6 @@ export class CommentsService {
     } catch (error) {
       throw new InternalServerErrorException('مشکلی پیش آمده است');
     }
-    return { message: 'عملیات موفقیت آمیز بود.' };
+    return { message };
   }
 }

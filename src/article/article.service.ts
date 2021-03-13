@@ -102,6 +102,7 @@ export class ArticleService {
   }
 
   async getArticle(id: number): Promise<ArticleInterface> {
+    console.log(id);
     const article = await this.fetchArticle(id);
     article.views = article.views + 1;
     try {
@@ -119,16 +120,20 @@ export class ArticleService {
   private async fetchArticle(id: number): Promise<ArticleInterface> {
     const article = await this.articleRepository
       .createQueryBuilder('article')
-      .select()
-      .where({ id: id })
       .leftJoin('article.admin', 'admin')
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoinAndSelect('article.tags', 'tags')
       .leftJoinAndSelect('article.category', 'category')
-      .leftJoinAndSelect('article.comment', 'comment')
-      .where('comment.parent is Null')
+      .leftJoinAndSelect(
+        'article.comment',
+        'comment',
+        'comment.isActive = :isActive',
+        { isActive: true },
+      )
+      .where('article.id = :id', { id })
+      .andWhere('comment.parent is Null')
       .getOne();
 
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد');
@@ -229,7 +234,7 @@ export class ArticleService {
       relations: ['tags', 'admin', 'editor'],
     });
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
-    if (article.admin !== admin)
+    if (article.admin.username !== admin.username)
       throw new UnauthorizedException('شما نویسنده این مقاله نیستید');
     let category: Category = null;
     if (editArticleDTO.categoryId) {

@@ -92,8 +92,8 @@ export class ArticleController {
   }
 
   @Get('/getPost/:id')
-  async getArticleForAdmin(@Param('id') id): Promise<ArticleInterface> {
-    return this.articlesService.getArticle(id);
+  async getArticleForAdmin(@Param('id') id: number): Promise<ArticleInterface> {
+    return this.articlesService.getArticleForAdmin(id);
   }
 
   @Get('/getBlogPost/:id')

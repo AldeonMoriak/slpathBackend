@@ -19,7 +19,7 @@ export class Comment extends BaseEntity {
   @ManyToOne(() => Article, (article) => article.comment)
   article: Article;
 
-  @Column()
+  @Column({ nullable: true })
   email: string;
 
   @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })

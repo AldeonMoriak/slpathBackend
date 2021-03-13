@@ -1,4 +1,4 @@
-import { IsNotEmpty, MaxLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
 
 export class CreateCommentDTO {
   @IsNotEmpty({ message: 'لطفا نام خود را وارد کنید.' })
@@ -7,6 +7,10 @@ export class CreateCommentDTO {
   @IsNotEmpty({ message: 'پاسخ نمی تواند خالی باشد' })
   content: string;
   articleId: number;
+
+  @IsOptional()
+  @IsEmail({}, { message: 'یک ایمیل معتبر وارد کنید.' })
   email?: string;
+
   parentId: number;
 }
