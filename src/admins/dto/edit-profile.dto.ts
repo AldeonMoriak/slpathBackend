@@ -34,4 +34,21 @@ export class EditProfileDTO {
   @MinLength(20, { message: 'تعداد کاراکتر ها باید بیشتر از ۲۰ باشد' })
   @MaxLength(184, { message: 'حداکثر تعداد کاراکتر ها باید ۱۸۴ باشد' })
   description: string;
+
+  @Matches(/989\d{9}/g, {
+    message: 'شماره واتساپ را با فرمت ۹۸۹۰۰۰۰۰۰۰۰۰۰ وارد کنید',
+  })
+  whatsappId: string;
+
+  @Matches(/09\d{9}/g, {
+    message: 'یک شماره موبایل معتبر وارد کنید',
+  })
+  mobileNumber: string;
+
+  @IsString({ message: 'نام کاربری اینستاگرام باید از نوع رشته باشد' })
+  instagramUsername: string;
+
+  @IsOptional()
+  @IsString({ message: 'نام باید از نوع رشته باشد' })
+  telegramUsername: string;
 }

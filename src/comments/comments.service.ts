@@ -29,6 +29,7 @@ export class CommentsService {
       .addSelect('article.id')
       .where('article.id = :id', { id })
       .andWhere('comment.parent is NULL')
+      .orderBy('comment.createdDateTime', 'DESC')
       .getMany();
 
     const commentsWithReplies: CommentInterface[] = [...comments];
@@ -42,6 +43,7 @@ export class CommentsService {
           .innerJoin('comment.parent', 'parent')
           .addSelect('parent.id')
           .where('parent.id = :id', { id: cmt.id })
+          .orderBy('comment.createdDateTime', 'DESC')
           .getMany();
       }),
     );
@@ -77,7 +79,7 @@ export class CommentsService {
       let parent = await this.commentRepository.findOne(parentId, {
         relations: ['parent'],
       });
-      if (parent.parent.id)
+      if (parent.parent)
         parent = await this.commentRepository.findOne(parent.parent.id);
       if (user) {
         const admin = await this.adminsService.findOne(user.username);

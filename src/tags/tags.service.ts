@@ -33,6 +33,7 @@ export class TagsService {
       .addSelect('admin.name')
       .leftJoin('tag.editor', 'editor')
       .addSelect('editor.name')
+      .orderBy('tag.createdDateTime', 'DESC')
       .getMany();
   }
 

@@ -18,6 +18,21 @@ export class Admin extends User {
   @ManyToOne(() => Admin, (admin) => admin.id)
   createdBy: Admin;
 
-  @Column({ nullable: true })
+  @Column('text', { nullable: true })
   description?: string;
+
+  @Column('text', { nullable: true })
+  clinicAddress?: string;
+
+  @Column({ nullable: true, length: 11 })
+  mobileNumber?: string;
+
+  @Column({ nullable: true, length: 12 })
+  whatsappId?: string;
+
+  @Column({ nullable: true })
+  telegramUsername?: string;
+
+  @Column({ nullable: true })
+  instagramUsername?: string;
 }

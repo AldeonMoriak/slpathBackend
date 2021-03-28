@@ -33,6 +33,7 @@ export class CategoriesService {
       .addSelect('admin.name')
       .leftJoin('category.editor', 'editor')
       .addSelect('editor.name')
+      .orderBy('category.createdDateTime', 'DESC')
       .getMany();
   }
 

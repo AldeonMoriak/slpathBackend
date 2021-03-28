@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Res,
   UploadedFile,
   UseGuards,
@@ -23,6 +24,7 @@ import { Article } from './article.entity';
 import { ArticleService } from './article.service';
 import { CreateArticleDTO } from './dto/create-article.dto';
 import { EditArticleDTO } from './dto/edit-article.dto';
+import { PaginationDto } from './dto/pagination.dto';
 import ArticleInterface from './interfaces/article.interface';
 
 @Controller('articles')
@@ -38,15 +40,33 @@ export class ArticleController {
   }
 
   @Get('getAll')
-  async getAllArticles(): Promise<Article[]> {
-    return this.articlesService.getAllArticles();
+  async getAllArticles(
+    @Query() paginationDTO: PaginationDto,
+  ): Promise<{ data: Article[]; totalCount: number }> {
+    return this.articlesService.getAllArticles(paginationDTO);
+  }
+
+  @Get('getAllFavs')
+  async getAllFavArticles(
+    @Query() paginationDTO: PaginationDto,
+  ): Promise<{ data: Article[]; totalCount: number }> {
+    return this.articlesService.getAllFavArticles(paginationDTO);
+  }
+
+  @Get('tag/:tag')
+  async getAllArticlesByTag(
+    @Param('tag') tag: string,
+    @Query() paginationDTO: PaginationDto,
+  ): Promise<Article[]> {
+    return this.articlesService.getArticlesByTag(paginationDTO, tag);
   }
 
   @Get('/getPosts/:username')
-  async getAdminArticles(
+  async getWriterArticles(
     @Param('username') username: string,
-  ): Promise<Article[]> {
-    return this.articlesService.getAdminArticles(username);
+    @Query() paginationDTO: PaginationDto,
+  ): Promise<{ data: ArticleInterface[]; totalCount }> {
+    return this.articlesService.getWriterArticles(username, paginationDTO);
   }
 
   @UseGuards(AdminJwtAuthGuard)
@@ -93,17 +113,17 @@ export class ArticleController {
 
   @Get('/getPost/:id')
   async getArticleForAdmin(@Param('id') id: number): Promise<ArticleInterface> {
-    return this.articlesService.getArticleForAdmin(id);
+    return this.articlesService.getArticle(id);
   }
 
   @Get('/getBlogPost/:id')
   async getArticle(@Param('id') id): Promise<ArticleInterface> {
-    return this.articlesService.getArticle(id);
+    return this.articlesService.getArticleForAdmin(id);
   }
 
   @UseGuards(AdminJwtAuthGuard)
   @Delete('deleteArticle/:id')
-  async deleteArticle(@Param() id: number): Promise<ResponseMessage> {
+  async deleteArticle(@Param('id') id: number): Promise<ResponseMessage> {
     return this.articlesService.deleteArticle(id);
   }
 

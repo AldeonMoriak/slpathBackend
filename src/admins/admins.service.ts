@@ -30,7 +30,7 @@ export class AdminsService {
   async findAll(): Promise<Admin[]> {
     const admins = await this.adminRepository
       .createQueryBuilder('admin')
-      .where('admin.isActive = 1')
+      .where('admin.isActive = :isActive', { isActive: true })
       .leftJoin('admin.createdBy', 'creator')
       .addSelect('creator.name')
       .getMany();

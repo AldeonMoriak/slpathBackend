@@ -20,6 +20,7 @@ import { DateTime } from 'luxon';
 import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import ArticleInterface from './interfaces/article.interface';
 import { Comment as CommentEntity } from 'src/comments/comment.entity';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Injectable()
 export class ArticleService {
@@ -35,22 +36,48 @@ export class ArticleService {
     return this.articleRepository.findOne(id);
   }
 
-  async getAdminArticles(username: string): Promise<Article[]> {
+  async getWriterArticles(
+    username: string,
+    paginationDTO: PaginationDto,
+  ): Promise<{ data: ArticleInterface[]; totalCount: number }> {
     const admin = await this.adminsService.findOne(username);
     if (!admin) throw new NotFoundException('نویسنده مورد نظر یافت نشد');
+    const skippedItems = (paginationDTO.page - 1) * paginationDTO.limit;
+    const totalCount = await this.articleRepository.count({
+      where: {
+        admin,
+      },
+    });
     const articles = await this.articleRepository
       .createQueryBuilder('article')
-      .select()
       .leftJoin('article.admin', 'admin')
       .where('admin.username = :username', { username })
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.description')
       .addSelect('admin.profilePictureThumbnailUrl')
+      .skip(skippedItems)
+      .take(paginationDTO.limit)
       .getMany();
 
-    articles.map((article) => delete article.content);
-    return articles;
+    const fetchedArticles: ArticleInterface[] = [...articles];
+    await Promise.all(
+      fetchedArticles.map(async (article) => {
+        delete article.content;
+        const commetnsCount: {
+          count: number;
+        } = await this.articleRepository
+          .createQueryBuilder('article')
+          .innerJoin('article.comment', 'comment')
+          .select('COUNT(comment.id)', 'count')
+          .where('article.id = :id', { id: article.id })
+          .andWhere('comment.isActive = :value', { value: true })
+          .getRawOne();
+
+        article.commentCount = commetnsCount.count;
+      }),
+    );
+    return { data: fetchedArticles, totalCount };
   }
 
   async getAllAdminArticles(user: CurrentUser): Promise<Article[]> {
@@ -64,13 +91,18 @@ export class ArticleService {
       .where('admin.username = :username', { username: user.username })
       .leftJoin('article.editor', 'editor')
       .addSelect('editor.name')
+      .orderBy('article.createdDateTime', 'DESC')
       .getMany();
 
     articles.map((article) => delete article.content);
     return articles;
   }
 
-  async getAllArticles(): Promise<Article[]> {
+  async getAllArticles(
+    paginationDTO: PaginationDto,
+  ): Promise<{ totalCount: number; data: Article[] }> {
+    const skippedItems = (paginationDTO.page - 1) * paginationDTO.limit;
+    const totalCount = await this.articleRepository.count();
     const articles = await this.articleRepository
       .createQueryBuilder('article')
       .select()
@@ -78,6 +110,87 @@ export class ArticleService {
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
+      .orderBy('article.createdDateTime', 'DESC')
+      .skip(skippedItems)
+      .take(paginationDTO.limit)
+      .getMany();
+
+    const fetchedArticles: ArticleInterface[] = [...articles];
+    await Promise.all(
+      fetchedArticles.map(async (article) => {
+        delete article.content;
+        const commetnsCount: {
+          count: number;
+        } = await this.articleRepository
+          .createQueryBuilder('article')
+          .innerJoin('article.comment', 'comment')
+          .select('COUNT(comment.id)', 'count')
+          .where('article.id = :id', { id: article.id })
+          .andWhere('comment.isActive = :value', { value: true })
+          .getRawOne();
+
+        article.commentCount = commetnsCount.count;
+        // article.commentCount = commetnsCount;
+      }),
+    );
+    return { data: articles, totalCount };
+  }
+
+  async getAllFavArticles(
+    paginationDTO: PaginationDto,
+  ): Promise<{ data: Article[]; totalCount: number }> {
+    const skippedItems = (paginationDTO.page - 1) * paginationDTO.limit;
+    const totalCount = await this.articleRepository.count();
+    const articles = await this.articleRepository
+      .createQueryBuilder('article')
+      .select()
+      .leftJoin('article.admin', 'admin')
+      .addSelect('admin.name')
+      .addSelect('admin.username')
+      .addSelect('admin.profilePictureThumbnailUrl')
+      .orderBy('article.views', 'DESC')
+      .skip(skippedItems)
+      .take(paginationDTO.limit)
+      .getMany();
+
+    const fetchedArticles: ArticleInterface[] = [...articles];
+    await Promise.all(
+      fetchedArticles.map(async (article) => {
+        delete article.content;
+        const commetnsCount: {
+          count: number;
+        } = await this.articleRepository
+          .createQueryBuilder('article')
+          .innerJoin('article.comment', 'comment')
+          .select('COUNT(comment.id)', 'count')
+          .where('article.id = :id', { id: article.id })
+          .andWhere('comment.isActive = :value', { value: true })
+          .getRawOne();
+
+        article.commentCount = commetnsCount.count;
+        // article.commentCount = commetnsCount;
+      }),
+    );
+    return { data: articles, totalCount };
+  }
+
+  async getArticlesByTag(
+    paginationDTO: PaginationDto,
+    tag: string,
+  ): Promise<Article[]> {
+    const skippedItems = (paginationDTO.page - 1) * paginationDTO.limit;
+    const articles = await this.articleRepository
+      .createQueryBuilder('article')
+      .select()
+      .leftJoin('article.admin', 'admin')
+      .addSelect('admin.name')
+      .addSelect('admin.username')
+      .addSelect('admin.profilePictureThumbnailUrl')
+      .leftJoin('article.tags', 'tag')
+      .where('tag.title = :title', { title: tag })
+      .orderBy('article.createdDateTime', 'DESC')
+      .skip(skippedItems)
+      .take(paginationDTO.limit)
       .getMany();
 
     const fetchedArticles: ArticleInterface[] = [...articles];
@@ -102,11 +215,16 @@ export class ArticleService {
   }
 
   async getArticle(id: number): Promise<ArticleInterface> {
-    console.log(id);
     const article = await this.fetchArticle(id);
-    article.views = article.views + 1;
+    // article.views = article.views + 1;
     try {
-      await article.save();
+      await getConnection()
+        .createQueryBuilder()
+        .update(Article)
+        .set({ views: article.views + 1 })
+        .where('id = :id', { id: id })
+        .execute();
+      // await article.save();
     } catch (error) {
       throw new InternalServerErrorException('خطایی رخ داده است');
     }
@@ -144,6 +262,10 @@ export class ArticleService {
           .createQueryBuilder()
           .select('comment')
           .from(CommentEntity, 'comment')
+          .leftJoin('comment.parent', 'parent')
+          .addSelect('parent.id')
+          .leftJoin('comment.article', 'article')
+          .addSelect('article.id')
           .where('comment.parentId = :id', { id: cmt.id })
           .getMany();
 
