@@ -29,10 +29,9 @@ import { ResponseMessage } from 'src/interfaces/response-message.interface';
 export class AdminsController {
   constructor(private adminsService: AdminsService) {}
 
-  @UseGuards(AdminJwtAuthGuard)
-  @Get('portal/getUsers')
-  async getAllUsers(): Promise<User[]> {
-    return this.adminsService.getAllUsers();
+  @Get('/getTherapists')
+  async getAllTherapists(): Promise<User[]> {
+    return this.adminsService.getAllTherapists();
   }
 
   @UseGuards(AdminJwtAuthGuard)
@@ -77,6 +76,17 @@ export class AdminsController {
     @Body() editAdminDTO: EditAdminDTO,
   ): Promise<ResponseMessage> {
     return this.adminsService.editAdmin(editAdminDTO, file, admin);
+  }
+
+  @Get('getTherapist/:username')
+  async getTherapist(
+    @Param('username') username: string,
+  ): Promise<{ user: Admin }> {
+    const user = await this.adminsService.findOne(username);
+    delete user.password;
+    return {
+      user: user,
+    };
   }
 
   @UseGuards(AdminJwtAuthGuard)

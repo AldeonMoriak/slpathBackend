@@ -22,8 +22,8 @@ export class EditProfileDTO {
   @IsEmail({}, { message: 'لطفا یک ایمیل معتبر وارد کنید' })
   email?: string;
 
-  @MinLength(8, { message: 'رمز عبور باید بیشتر از ۸ حرف باشد.' })
   @IsOptional()
+  @MinLength(8, { message: 'رمز عبور باید بیشتر از ۸ حرف باشد.' })
   @MaxLength(20, { message: 'رمز عبور باید کمتر از ۲۰ حرف باشد' })
   @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
     message:
@@ -31,24 +31,41 @@ export class EditProfileDTO {
   })
   password?: string;
 
+  categories: string;
+
   @MinLength(20, { message: 'تعداد کاراکتر ها باید بیشتر از ۲۰ باشد' })
   @MaxLength(184, { message: 'حداکثر تعداد کاراکتر ها باید ۱۸۴ باشد' })
   description: string;
 
-  @Matches(/989\d{9}/g, {
-    message: 'شماره واتساپ را با فرمت ۹۸۹۰۰۰۰۰۰۰۰۰۰ وارد کنید',
+  @IsOptional()
+  @Matches(/989\d{9}/i, {
+    message: 'شماره واتساپ را با فرمت ۹۸۹xxxxxxxxx وارد کنید',
   })
-  whatsappId: string;
+  whatsappId?: string;
 
-  @Matches(/09\d{9}/g, {
+  @IsOptional()
+  @Matches(/09(1[0-9]|3[1-9]|2[1-9])-?[0-9]{3}-?[0-9]{4}/i, {
     message: 'یک شماره موبایل معتبر وارد کنید',
   })
-  mobileNumber: string;
+  mobileNumber?: string;
 
+  @IsOptional()
   @IsString({ message: 'نام کاربری اینستاگرام باید از نوع رشته باشد' })
-  instagramUsername: string;
+  instagramUsername?: string;
+
+  @IsOptional()
+  @IsString({ message: 'نام کاربری لینکداین باید از نوع رشته باشد' })
+  linkedinId?: string;
 
   @IsOptional()
   @IsString({ message: 'نام باید از نوع رشته باشد' })
-  telegramUsername: string;
+  telegramUsername?: string;
+
+  @IsOptional()
+  @IsString({ message: 'نام باید از نوع رشته باشد' })
+  clinicAddress?: string;
+
+  @IsOptional()
+  @IsString({ message: 'عنوان شغل باید از نوع رشته باشد' })
+  occupation?: string;
 }

@@ -10,7 +10,7 @@ import { LoginUserDTO } from 'src/auth/dto/login-user.dto';
 import { SignupUserDTO } from 'src/auth/dto/signup-user.dto';
 import { User } from 'src/users/user.entity';
 import { UsersService } from 'src/users/users.service';
-import { getManager, Repository } from 'typeorm';
+import { getConnection, getManager, Repository } from 'typeorm';
 import { Admin } from './admin.entity';
 import * as bcrypt from 'bcrypt';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
@@ -40,8 +40,19 @@ export class AdminsService {
     return admins;
   }
 
-  async getAllUsers(): Promise<User[]> {
-    return this.usersService.findAll();
+  async getAllTherapists(): Promise<Admin[]> {
+    const admins = await this.adminRepository
+      .createQueryBuilder('admin')
+      .select()
+      .leftJoin('admin.categories', 'categories')
+      .addSelect('categories.id')
+      .addSelect('categories.title')
+      .where('admin.isActive = :isActive', { isActive: true })
+      .orderBy('admin.createdDateTime', 'ASC')
+      .getMany();
+
+    admins.map((admin) => delete admin.password);
+    return admins;
   }
 
   async findOne(username: string, id?: number): Promise<Admin> {
@@ -50,11 +61,13 @@ export class AdminsService {
           where: {
             id,
           },
+          relations: ['categories'],
         })
       : this.adminRepository.findOne({
           where: {
             username,
           },
+          relations: ['categories'],
         });
   }
 
@@ -67,6 +80,9 @@ export class AdminsService {
     if (!adminUser)
       throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
     const { email, name, password, username } = signupUserDTO;
+    const isUsernameTaken = await this.findOne(username);
+    if (isUsernameTaken)
+      throw new ConflictException('این نام کاربری قبلا استفاده شده است');
     const admin = new Admin();
     admin.email = email;
     admin.name = name;
@@ -135,10 +151,30 @@ export class AdminsService {
   ) {
     if (!adminUser)
       throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
-    const { email, name, password, description } = editProfileDTO;
+    const {
+      email,
+      name,
+      password,
+      description,
+      whatsappId,
+      instagramUsername,
+      telegramUsername,
+      clinicAddress,
+      mobileNumber,
+      categories,
+      linkedinId,
+      occupation,
+    } = editProfileDTO;
     if (!adminUser) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
     if (name) adminUser.name = name;
+    if (occupation) adminUser.occupation = occupation;
+    if (instagramUsername) adminUser.instagramUsername = instagramUsername;
+    if (whatsappId) adminUser.whatsappId = whatsappId;
+    if (telegramUsername) adminUser.telegramUsername = telegramUsername;
+    if (clinicAddress) adminUser.clinicAddress = clinicAddress;
+    if (mobileNumber) adminUser.mobileNumber = mobileNumber;
     if (email) adminUser.email = email;
+    if (linkedinId) adminUser.linkedinId = linkedinId;
     if (description) adminUser.description = description;
     if (password)
       adminUser.password = await bcrypt.hash(
@@ -172,6 +208,22 @@ export class AdminsService {
       throw new InternalServerErrorException();
     }
 
+    const resCategories: number[] = JSON.parse(categories);
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .relation(Admin, 'categories')
+        .of(adminUser)
+        .remove(adminUser.categories);
+      await getConnection()
+        .createQueryBuilder()
+        .relation(Admin, 'categories')
+        .of(adminUser)
+        .add(resCategories);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
     return {
       message: 'عملیات موفقیت آمیز بود.',
     };

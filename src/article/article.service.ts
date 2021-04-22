@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminsService } from 'src/admins/admins.service';
-import { CategoriesService } from 'src/categories/categories.service';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
 import { TagsService } from 'src/tags/tags.service';
 import { getConnection, getManager, Repository, Timestamp } from 'typeorm';
@@ -15,7 +14,6 @@ import { Article } from './article.entity';
 import { CreateArticleDTO } from './dto/create-article.dto';
 import { EditArticleDTO } from './dto/edit-article.dto';
 import * as sharp from 'sharp';
-import { Category } from 'src/categories/category.entity';
 import { DateTime } from 'luxon';
 import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import ArticleInterface from './interfaces/article.interface';
@@ -28,7 +26,6 @@ export class ArticleService {
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
     private adminsService: AdminsService,
-    private categoriesService: CategoriesService,
     private tagsService: TagsService,
   ) {}
 
@@ -56,6 +53,7 @@ export class ArticleService {
       .addSelect('admin.username')
       .addSelect('admin.description')
       .addSelect('admin.profilePictureThumbnailUrl')
+      .where('article.isActive = :value', { value: true })
       .skip(skippedItems)
       .take(paginationDTO.limit)
       .getMany();
@@ -110,6 +108,7 @@ export class ArticleService {
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
+      .where('article.isActive = :value', { value: true })
       .orderBy('article.createdDateTime', 'DESC')
       .skip(skippedItems)
       .take(paginationDTO.limit)
@@ -148,6 +147,7 @@ export class ArticleService {
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
+      .where('article.isActive = :value', { value: true })
       .orderBy('article.views', 'DESC')
       .skip(skippedItems)
       .take(paginationDTO.limit)
@@ -188,6 +188,7 @@ export class ArticleService {
       .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoin('article.tags', 'tag')
       .where('tag.title = :title', { title: tag })
+      .andWhere('article.isActive = :value', { value: true })
       .orderBy('article.createdDateTime', 'DESC')
       .skip(skippedItems)
       .take(paginationDTO.limit)
@@ -243,7 +244,6 @@ export class ArticleService {
       .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoinAndSelect('article.tags', 'tags')
-      .leftJoinAndSelect('article.category', 'category')
       .leftJoinAndSelect(
         'article.comment',
         'comment',
@@ -284,11 +284,6 @@ export class ArticleService {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
-    let category: Category = null;
-    if (createArticleDTO.categoryId) {
-      const categoryId = JSON.parse(createArticleDTO.categoryId);
-      category = await this.categoriesService.findOne(categoryId);
-    }
     if (!file) throw new NotAcceptableException('لطفا یک عکس بارگزاری کنید!');
     const image = sharp('uploads/images/' + file.filename);
     image
@@ -309,7 +304,6 @@ export class ArticleService {
     article.description = createArticleDTO.description;
     article.content = createArticleDTO.content;
     article.admin = admin;
-    article.category = category;
 
     article.referenceUrl = createArticleDTO.referenceUrl;
     article.imageUrl = file.filename;
@@ -358,11 +352,6 @@ export class ArticleService {
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
     if (article.admin.username !== admin.username)
       throw new UnauthorizedException('شما نویسنده این مقاله نیستید');
-    let category: Category = null;
-    if (editArticleDTO.categoryId) {
-      const categoryId = JSON.parse(editArticleDTO.categoryId);
-      category = await this.categoriesService.findOne(categoryId);
-    }
     article.editor = admin;
     if (file) {
       const image = sharp('uploads/images/' + file.filename);
@@ -381,11 +370,9 @@ export class ArticleService {
         });
       article.imageUrl = file.filename;
       article.thumbnailUrl = 'thumbnail-' + file.filename;
-      console.log(file);
     }
     article.referenceUrl = editArticleDTO.referenceUrl;
     article.title = editArticleDTO.title;
-    article.category = category;
     article.description = editArticleDTO.description;
     article.content = editArticleDTO.content;
     const now = DateTime.utc().toISO() as unknown;
@@ -425,7 +412,7 @@ export class ArticleService {
   async deleteArticle(id: number): Promise<ResponseMessage> {
     const article = await this.articleRepository.findOne(id);
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
-    await this.articleRepository.delete(id);
+    await this.articleRepository.update(id, { isActive: !article.isActive });
     return {
       message: 'عملیات با موفقیت انجام شد.',
     };

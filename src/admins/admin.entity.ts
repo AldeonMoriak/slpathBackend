@@ -1,13 +1,20 @@
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { Article } from '../article/article.entity';
-import { Category } from '../categories/category.entity';
+import { Interest } from '../categories/category.entity';
 import { Tag } from '../tags/tag.entity';
 import { User } from '../users/user.entity';
 
 @Entity()
 export class Admin extends User {
-  @OneToMany(() => Category, (category) => category.admin)
-  category: Category;
+  @OneToMany(() => Interest, (category) => category.admin)
+  category: Interest;
 
   @OneToMany(() => Article, (article) => article.admin)
   article: Article;
@@ -35,4 +42,14 @@ export class Admin extends User {
 
   @Column({ nullable: true })
   instagramUsername?: string;
+
+  @Column({ nullable: true })
+  linkedinId?: string;
+
+  @ManyToMany(() => Interest, (interest) => interest.therapists)
+  @JoinTable({ name: 'therapist_interest' })
+  categories: Interest[];
+
+  @Column()
+  occupation: string;
 }

@@ -3,29 +3,37 @@ import {
   BaseEntity,
   Column,
   Entity,
+  ManyToMany,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   Timestamp,
 } from 'typeorm';
-import { Article } from '../article/article.entity';
 
 @Entity()
-export class Category extends BaseEntity {
+export class Interest extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   title: string;
 
+  @Column('text')
+  description: string;
+
+  @Column('text')
+  content: string;
+
+  @Column()
+  imageUrl: string;
+
+  @Column()
+  thumbnailUrl: string;
+
   @ManyToOne(() => Admin, (admin) => admin.category)
   admin: Admin;
 
-  @ManyToOne(() => Admin, (admin) => admin.category)
-  editor: Admin;
-
-  @OneToMany(() => Article, (article) => article.category)
-  article: Article;
+  @ManyToMany(() => Admin, (admin) => admin.categories)
+  therapists: Admin[];
 
   @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
   createdDateTime: Timestamp;
