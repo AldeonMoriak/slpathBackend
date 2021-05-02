@@ -68,6 +68,6 @@ export class AuthController {
   @UseGuards(AdminJwtAuthGuard)
   @Get('auth/logout')
   logout() {
-    return true;
+    return { message: 'خروج با موفقیت انجام شد' };
   }
 }

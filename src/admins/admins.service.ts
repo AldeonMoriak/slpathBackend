@@ -27,7 +27,11 @@ export class AdminsService {
     private usersService: UsersService,
   ) {}
 
-  async findAll(): Promise<Admin[]> {
+  async findAll(admin: CurrentUser): Promise<Admin[]> {
+    const currentAdmin = await this.adminRepository.findOne(admin.id);
+    if (!currentAdmin.isSuperAdmin) {
+      throw new UnauthorizedException('شما مجاز به انجام این عملیات نیستید.');
+    }
     const admins = await this.adminRepository
       .createQueryBuilder('admin')
       .where('admin.isActive = :isActive', { isActive: true })
@@ -77,7 +81,7 @@ export class AdminsService {
     user: CurrentUser,
   ): Promise<ResponseMessage> {
     const adminUser = await this.findOne(user.username);
-    if (!adminUser)
+    if (!adminUser || !adminUser.isSuperAdmin)
       throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
     const { email, name, password, username } = signupUserDTO;
     const isUsernameTaken = await this.findOne(username);
@@ -141,6 +145,9 @@ export class AdminsService {
     user: CurrentUser,
   ): Promise<ResponseMessage> {
     const adminUser = await this.findOne(editAdminDTO.username);
+    if (!adminUser.isSuperAdmin) {
+      throw new UnauthorizedException('شما مجاز به انجام این عملیات نیستید.');
+    }
     return this.edit(adminUser, editAdminDTO, file);
   }
 

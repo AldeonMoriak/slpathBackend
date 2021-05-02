@@ -36,8 +36,8 @@ export class AdminsController {
 
   @UseGuards(AdminJwtAuthGuard)
   @Get('getAdmins')
-  async getAllAdmins(): Promise<Admin[]> {
-    return this.adminsService.findAll();
+  async getAllAdmins(@GetAdmin() admin: CurrentUser): Promise<Admin[]> {
+    return this.adminsService.findAll(admin);
   }
 
   @UseGuards(AdminJwtAuthGuard)

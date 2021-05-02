@@ -46,6 +46,9 @@ export class Admin extends User {
   @Column({ nullable: true })
   linkedinId?: string;
 
+  @Column({ nullable: true })
+  isSuperAdmin?: string;
+
   @ManyToMany(() => Interest, (interest) => interest.therapists)
   @JoinTable({ name: 'therapist_interest' })
   categories: Interest[];
