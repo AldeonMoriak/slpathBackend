@@ -28,7 +28,7 @@ export class AdminsService {
   ) {}
 
   async findAll(admin: CurrentUser): Promise<Admin[]> {
-    const currentAdmin = await this.adminRepository.findOne(admin.id);
+    const currentAdmin = await this.adminRepository.findOne({ id: admin.id });
     if (!currentAdmin.isSuperAdmin) {
       throw new UnauthorizedException('شما مجاز به انجام این عملیات نیستید.');
     }
@@ -48,7 +48,7 @@ export class AdminsService {
     const admins = await this.adminRepository
       .createQueryBuilder('admin')
       .select()
-      .leftJoin('admin.categories', 'categories')
+      .innerJoin('admin.categories', 'categories')
       .addSelect('categories.id')
       .addSelect('categories.title')
       .where('admin.isActive = :isActive', { isActive: true })
@@ -60,19 +60,23 @@ export class AdminsService {
   }
 
   async findOne(username: string, id?: number): Promise<Admin> {
-    return id
-      ? this.adminRepository.findOne({
+    const user = id
+      ? await this.adminRepository.findOne({
           where: {
             id,
           },
           relations: ['categories'],
         })
-      : this.adminRepository.findOne({
+      : await this.adminRepository.findOne({
           where: {
             username,
           },
           relations: ['categories'],
         });
+    if (!user) {
+      throw new NotFoundException('کاربر مورد نظر یافت نشد');
+    }
+    return user;
   }
 
   async signup(
@@ -144,11 +148,12 @@ export class AdminsService {
     file: any,
     user: CurrentUser,
   ): Promise<ResponseMessage> {
-    const adminUser = await this.findOne(editAdminDTO.username);
+    const adminUser = await this.findOne(user.username);
     if (!adminUser.isSuperAdmin) {
       throw new UnauthorizedException('شما مجاز به انجام این عملیات نیستید.');
     }
-    return this.edit(adminUser, editAdminDTO, file);
+    const admin = await this.findOne(editAdminDTO.username);
+    return this.edit(admin, editAdminDTO, file);
   }
 
   private async edit(

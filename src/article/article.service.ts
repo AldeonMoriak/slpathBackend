@@ -30,7 +30,7 @@ export class ArticleService {
   ) {}
 
   async findOne(id: number): Promise<Article> {
-    return this.articleRepository.findOne(id);
+    return this.articleRepository.findOne({ id });
   }
 
   async getWriterArticles(
@@ -53,7 +53,7 @@ export class ArticleService {
       .addSelect('admin.username')
       .addSelect('admin.description')
       .addSelect('admin.profilePictureThumbnailUrl')
-      .where('article.isActive = :value', { value: true })
+      .andWhere('article.isActive = :value', { value: true })
       .skip(skippedItems)
       .take(paginationDTO.limit)
       .getMany();
@@ -244,7 +244,7 @@ export class ArticleService {
       .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoinAndSelect('article.tags', 'tags')
-      .leftJoinAndSelect(
+      .innerJoinAndSelect(
         'article.comment',
         'comment',
         'comment.isActive = :isActive',
@@ -267,6 +267,7 @@ export class ArticleService {
           .leftJoin('comment.article', 'article')
           .addSelect('article.id')
           .where('comment.parentId = :id', { id: cmt.id })
+          .andWhere('comment.isActive = :isActive', { isActive: true })
           .getMany();
 
         cmt.replies = replies;
@@ -346,9 +347,12 @@ export class ArticleService {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
-    const article = await this.articleRepository.findOne(editArticleDTO.id, {
-      relations: ['tags', 'admin', 'editor'],
-    });
+    const article = await this.articleRepository.findOne(
+      { id: editArticleDTO.id },
+      {
+        relations: ['tags', 'admin', 'editor'],
+      },
+    );
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
     if (article.admin.username !== admin.username)
       throw new UnauthorizedException('شما نویسنده این مقاله نیستید');
@@ -410,7 +414,7 @@ export class ArticleService {
   }
 
   async deleteArticle(id: number): Promise<ResponseMessage> {
-    const article = await this.articleRepository.findOne(id);
+    const article = await this.articleRepository.findOne({ id });
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
     await this.articleRepository.update(id, { isActive: !article.isActive });
     return {

@@ -51,7 +51,7 @@ export class CommentsService {
   }
 
   async toggleActive(id: number): Promise<ResponseMessage> {
-    const comment = await this.commentRepository.findOne(id);
+    const comment = await this.commentRepository.findOne({ id });
     try {
       this.commentRepository.update({ id }, { isActive: !comment.isActive });
     } catch (error) {
@@ -76,11 +76,14 @@ export class CommentsService {
 
     let message = 'نظر شما ثبت و پس از تایید ادمین نمایش داده خواهد شد.';
     if (parentId) {
-      let parent = await this.commentRepository.findOne(parentId, {
-        relations: ['parent'],
-      });
+      let parent = await this.commentRepository.findOne(
+        { id: parentId },
+        {
+          relations: ['parent'],
+        },
+      );
       if (parent.parent)
-        parent = await this.commentRepository.findOne(parent.parent.id);
+        parent = await this.commentRepository.findOne({ id: parent.parent.id });
       if (user) {
         const admin = await this.adminsService.findOne(user.username);
         comment.isAdmin = admin ? true : false;

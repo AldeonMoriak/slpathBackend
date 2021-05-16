@@ -47,12 +47,12 @@ export class Admin extends User {
   linkedinId?: string;
 
   @Column({ nullable: true })
-  isSuperAdmin?: string;
+  isSuperAdmin?: boolean;
 
   @ManyToMany(() => Interest, (interest) => interest.therapists)
   @JoinTable({ name: 'therapist_interest' })
   categories: Interest[];
 
-  @Column()
+  @Column({ nullable: true })
   occupation: string;
 }

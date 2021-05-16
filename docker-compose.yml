@@ -1,0 +1,9 @@
+version: "3"
+services:
+  postgres_slpath:
+    image: "postgres:latest"
+    container_name: "postgres_slpath"
+    ports:
+      - "54321:5432"
+    environment:
+      POSTGRES_PASSWORD: password
