@@ -34,7 +34,6 @@ export class CommentsController {
     id: number,
   ): Promise<CommentEntity[]> {
     const comments = await this.commentsService.getAllCommentsForArticle(id);
-    console.log(comments);
     return comments;
   }
 
