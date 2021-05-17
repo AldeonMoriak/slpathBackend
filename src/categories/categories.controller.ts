@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Res,
   UploadedFile,
   UseGuards,
@@ -32,6 +33,12 @@ export class CategoriesController {
   @Get('getAll')
   async getAllCategories(): Promise<Interest[]> {
     return this.categoriesService.getAllCategories();
+  }
+
+  @UseGuards(AdminJwtAuthGuard)
+  @Get('getAllForAdmin')
+  async getAllCategoriesForAdmin(): Promise<Interest[]> {
+    return this.categoriesService.getAllCategoriesForAdmin();
   }
 
   @UseGuards(AdminJwtAuthGuard)
@@ -77,14 +84,14 @@ export class CategoriesController {
   }
 
   @Get('/getCategory/:id')
-  async getCategory(@Param('id') id): Promise<Interest> {
+  async getCategory(@Param('id') id: number): Promise<Interest> {
     return this.categoriesService.getCategory(id);
   }
 
   @UseGuards(AdminJwtAuthGuard)
-  @Delete('deleteCategory/:id')
-  async deleteCategory(@Param() id: number): Promise<void> {
-    return this.categoriesService.deleteCategory(id);
+  @Put('toggleCategoryActiveness/:id')
+  async toggleCategoryActiveness(@Param('id') id: number): Promise<void> {
+    return this.categoriesService.toggleCategoryActiveness(id);
   }
 
   @Get('image/:imgpath')

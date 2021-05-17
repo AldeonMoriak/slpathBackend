@@ -31,7 +31,17 @@ export class CategoriesService {
   async getAllCategories(): Promise<Interest[]> {
     const interests = await this.categoryRepository
       .createQueryBuilder('category')
-      .select()
+      .orderBy('category.createdDateTime', 'ASC')
+      .where('category.isActive = :isActive', { isActive: true })
+      .getMany();
+
+    interests.map((el) => delete el.content);
+    return interests;
+  }
+
+  async getAllCategoriesForAdmin(): Promise<Interest[]> {
+    const interests = await this.categoryRepository
+      .createQueryBuilder('category')
       .orderBy('category.createdDateTime', 'ASC')
       .getMany();
 
@@ -129,12 +139,19 @@ export class CategoriesService {
   }
 
   async getCategory(id: number): Promise<Interest> {
-    const interest = await this.categoryRepository.findOne(
-      { id },
-      {
-        relations: ['therapists'],
-      },
-    );
+    // const interest = await this.categoryRepository.findOne(
+    //   { id },
+    //   {
+    //     relations: ['therapists'],
+    //   },
+    // );
+    const interest = await this.categoryRepository
+      .createQueryBuilder('interest')
+      .leftJoin('interest.therapists', 'therapists')
+      .addSelect('therapists')
+      .where('interest.id = :id', { id })
+      .andWhere('interest.isActive = :isActive', { isActive: true })
+      .getOne();
     if (!interest) throw new NotFoundException('مورد یافت نشد.');
     if (interest.therapists) {
       interest.therapists.map((admin) => {
@@ -144,9 +161,12 @@ export class CategoriesService {
     return interest;
   }
 
-  async deleteCategory(id: number): Promise<void> {
+  async toggleCategoryActiveness(id: number): Promise<void> {
     const category = await this.categoryRepository.findOne({ id });
     if (!category) throw new NotFoundException('دسته بندی مورد نظر یافت نشد.');
-    await this.categoryRepository.delete(id);
+    await this.categoryRepository.update(
+      { id },
+      { isActive: !category.isActive },
+    );
   }
 }

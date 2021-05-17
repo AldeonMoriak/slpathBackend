@@ -40,4 +40,7 @@ export class Interest extends BaseEntity {
 
   @Column({ nullable: true, type: 'timestamp', onUpdate: 'CURRENT_TIMESTAMP' })
   updateDateTime: Timestamp;
+
+  @Column({ default: true })
+  isActive: boolean;
 }

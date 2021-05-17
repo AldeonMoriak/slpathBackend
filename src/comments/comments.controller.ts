@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminJwtAuthGuard } from 'src/admins/admin-jwt-auth.guard';
 import { CommentsService } from './comments.service';
 import { Comment as CommentEntity } from './comment.entity';
@@ -14,14 +23,26 @@ export class CommentsController {
   @UseGuards(AdminJwtAuthGuard)
   @Get('/getAll/:id')
   async getAllCommentsForArticle(
-    @Param('id') id: number,
+    @Param(
+      'id',
+      new ParseIntPipe({
+        exceptionFactory(error: string) {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id: number,
   ): Promise<CommentEntity[]> {
-    return this.commentsService.getAllCommentsForArticle(id);
+    const comments = await this.commentsService.getAllCommentsForArticle(id);
+    console.log(comments);
+    return comments;
   }
 
   @UseGuards(AdminJwtAuthGuard)
   @Get('/toggleActive/:id')
-  async toggleActive(@Param('id') id: number): Promise<ResponseMessage> {
+  async toggleActive(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ResponseMessage> {
     return this.commentsService.toggleActive(id);
   }
 
