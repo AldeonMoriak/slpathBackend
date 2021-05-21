@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -44,7 +46,17 @@ export class TagsController {
   }
 
   @Delete('deleteTag/:id')
-  async deleteTag(@Param() id: number): Promise<{ message: string }> {
+  async deleteTag(
+    @Param(
+      'id',
+      new ParseIntPipe({
+        exceptionFactory() {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id: number,
+  ): Promise<{ message: string }> {
     return this.tagsService.deleteTag(id);
   }
 }

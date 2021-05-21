@@ -1,9 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Res,
@@ -84,13 +85,33 @@ export class CategoriesController {
   }
 
   @Get('/getCategory/:id')
-  async getCategory(@Param('id') id: number): Promise<Interest> {
+  async getCategory(
+    @Param(
+      'id',
+      new ParseIntPipe({
+        exceptionFactory() {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id: number,
+  ): Promise<Interest> {
     return this.categoriesService.getCategory(id);
   }
 
   @UseGuards(AdminJwtAuthGuard)
   @Put('toggleCategoryActiveness/:id')
-  async toggleCategoryActiveness(@Param('id') id: number): Promise<void> {
+  async toggleCategoryActiveness(
+    @Param(
+      'id',
+      new ParseIntPipe({
+        exceptionFactory() {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id: number,
+  ): Promise<void> {
     return this.categoriesService.toggleCategoryActiveness(id);
   }
 

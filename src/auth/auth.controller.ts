@@ -24,8 +24,8 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('auth/login')
-  async login(@Body() LoginUserDTO: LoginUserDTO) {
-    return this.authService.login(LoginUserDTO);
+  async login(@Body() loginUserDTO: LoginUserDTO) {
+    return this.authService.login(loginUserDTO);
   }
 
   @UseGuards(AdminJwtAuthGuard)

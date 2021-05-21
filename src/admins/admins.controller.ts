@@ -1,10 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
-  NotFoundException,
   Param,
+  ParseIntPipe,
   Put,
   Res,
   UploadedFile,
@@ -12,19 +12,19 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { diskStorage } from 'multer';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
+import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import { User } from 'src/users/user.entity';
 import { editFileName } from 'src/utils/edit-file-name';
 import { imageFileFilter } from 'src/utils/image-file-filter';
 import { AdminJwtAuthGuard } from './admin-jwt-auth.guard';
 import { Admin } from './admin.entity';
 import { AdminsService } from './admins.service';
+import { EditAdminDTO } from './dto/edit-admin.dto';
 import { EditProfileDTO } from './dto/edit-profile.dto';
 import { GetAdmin } from './get-admin.decorator';
-import { Response } from 'express';
-import { EditAdminDTO } from './dto/edit-admin.dto';
-import { ResponseMessage } from 'src/interfaces/response-message.interface';
 
 @Controller()
 export class AdminsController {
@@ -104,7 +104,15 @@ export class AdminsController {
   @Get('admin/getAdmin/:id')
   async getAdmin(
     @GetAdmin() admin: CurrentUser,
-    @Param('id') id: number,
+    @Param(
+      'id',
+      new ParseIntPipe({
+        exceptionFactory() {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id: number,
   ): Promise<{ user: Admin }> {
     const user = await this.adminsService.findOne('', id);
     delete user.password;
@@ -114,13 +122,21 @@ export class AdminsController {
   }
 
   @UseGuards(AdminJwtAuthGuard)
-  @Delete('admin/deleteAdmin/:id')
-  async deleteAdmin(
+  @Put('admin/toggleAdminActivation/:id')
+  async toggleAdminActivation(
     @GetAdmin() admin: CurrentUser,
-    @Param('id') id: number,
+    @Param(
+      'id',
+
+      new ParseIntPipe({
+        exceptionFactory() {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id: number,
   ): Promise<ResponseMessage> {
-    this.adminsService.remove(id);
-    return { message: 'عملیات موفقیت آمیز بود' };
+    return this.adminsService.toggleAdminActivation(id, admin);
   }
 
   @Get('image/:imgpath')

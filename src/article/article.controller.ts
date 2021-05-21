@@ -1,10 +1,12 @@
 import {
+  BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
+  Put,
   Query,
   Res,
   UploadedFile,
@@ -112,19 +114,50 @@ export class ArticleController {
   }
 
   @Get('/getPost/:id')
-  async getArticleForAdmin(@Param('id') id: number): Promise<ArticleInterface> {
+  async getArticleForAdmin(
+    @Param(
+      'id',
+
+      new ParseIntPipe({
+        exceptionFactory() {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id: number,
+  ): Promise<ArticleInterface> {
     return this.articlesService.getArticle(id);
   }
 
   @Get('/getBlogPost/:id')
-  async getArticle(@Param('id') id): Promise<ArticleInterface> {
+  async getArticle(
+    @Param(
+      'id',
+      new ParseIntPipe({
+        exceptionFactory() {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id,
+  ): Promise<ArticleInterface> {
     return this.articlesService.getArticleForAdmin(id);
   }
 
   @UseGuards(AdminJwtAuthGuard)
-  @Delete('deleteArticle/:id')
-  async deleteArticle(@Param('id') id: number): Promise<ResponseMessage> {
-    return this.articlesService.deleteArticle(id);
+  @Put('toggleArticleActivation/:id')
+  async toggleArticleActivation(
+    @Param(
+      'id',
+      new ParseIntPipe({
+        exceptionFactory() {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id: number,
+  ): Promise<ResponseMessage> {
+    return this.articlesService.toggleArticleActivation(id);
   }
 
   @Get('image/:imgpath')

@@ -26,7 +26,7 @@ export class CommentsController {
     @Param(
       'id',
       new ParseIntPipe({
-        exceptionFactory(error: string) {
+        exceptionFactory() {
           return new BadRequestException('لطفا یک عدد وارد کنید');
         },
       }),
@@ -40,7 +40,15 @@ export class CommentsController {
   @UseGuards(AdminJwtAuthGuard)
   @Get('/toggleActive/:id')
   async toggleActive(
-    @Param('id', ParseIntPipe) id: number,
+    @Param(
+      'id',
+      new ParseIntPipe({
+        exceptionFactory() {
+          return new BadRequestException('لطفا یک عدد وارد کنید');
+        },
+      }),
+    )
+    id: number,
   ): Promise<ResponseMessage> {
     return this.commentsService.toggleActive(id);
   }

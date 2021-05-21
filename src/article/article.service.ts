@@ -244,7 +244,7 @@ export class ArticleService {
       .addSelect('admin.username')
       .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoinAndSelect('article.tags', 'tags')
-      .innerJoinAndSelect(
+      .leftJoinAndSelect(
         'article.comment',
         'comment',
         'comment.isActive = :isActive',
@@ -413,7 +413,7 @@ export class ArticleService {
     };
   }
 
-  async deleteArticle(id: number): Promise<ResponseMessage> {
+  async toggleArticleActivation(id: number): Promise<ResponseMessage> {
     const article = await this.articleRepository.findOne({ id });
     if (!article) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
     await this.articleRepository.update(id, { isActive: !article.isActive });

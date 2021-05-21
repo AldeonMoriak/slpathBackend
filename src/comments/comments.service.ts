@@ -74,7 +74,7 @@ export class CommentsService {
     comment.content = content;
     comment.creator = name;
 
-    let message = 'نظر شما ثبت و پس از تایید ادمین نمایش داده خواهد شد.';
+    let message = 'نظر شما ثبت و پس از تایید ناظر نمایش داده خواهد شد.';
     if (parentId) {
       let parent = await this.commentRepository.findOne(
         { id: parentId },

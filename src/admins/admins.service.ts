@@ -8,7 +8,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginUserDTO } from 'src/auth/dto/login-user.dto';
 import { SignupUserDTO } from 'src/auth/dto/signup-user.dto';
-import { User } from 'src/users/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { getConnection, getManager, Repository } from 'typeorm';
 import { Admin } from './admin.entity';
@@ -34,9 +33,9 @@ export class AdminsService {
     }
     const admins = await this.adminRepository
       .createQueryBuilder('admin')
-      .where('admin.isActive = :isActive', { isActive: true })
       .leftJoin('admin.createdBy', 'creator')
       .addSelect('creator.name')
+      .orderBy('admin.createdDateTime', 'ASC')
       .getMany();
 
     admins.map((admin) => delete admin.password);
@@ -241,8 +240,19 @@ export class AdminsService {
     };
   }
 
-  async remove(id: number): Promise<void> {
-    await this.adminRepository.update({ id }, { isActive: false });
+  async toggleAdminActivation(
+    id: number,
+    currentUser: CurrentUser,
+  ): Promise<{ message: string }> {
+    const superAdmin = await this.adminRepository.findOne({
+      username: currentUser.username,
+    });
+    if (!superAdmin || !superAdmin.isSuperAdmin)
+      throw new UnauthorizedException('شما به این عملیات دسترسی ندارید!');
+    const admin = await this.adminRepository.findOne({ id });
+    if (!admin) throw new NotFoundException('کاربر مورد نظر یافت نشد!');
+    await this.adminRepository.update({ id }, { isActive: !admin.isActive });
+    return { message: 'عملیات موفقیت آمیز بود' };
   }
 
   async validateUserPassword(loginUserDTO: LoginUserDTO): Promise<string> {
