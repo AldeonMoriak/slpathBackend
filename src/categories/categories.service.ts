@@ -39,9 +39,13 @@ export class CategoriesService {
     return interests;
   }
 
-  async getAllCategoriesForAdmin(): Promise<Interest[]> {
+  async getAllCategoriesForAdmin(user: CurrentUser): Promise<Interest[]> {
+    const admin = await this.adminsService.findOne(user.username);
+    if (!admin)
+      throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     const interests = await this.categoryRepository
       .createQueryBuilder('category')
+      .where('category.adminId = :adminId', { adminId: admin.id })
       .orderBy('category.createdDateTime', 'ASC')
       .getMany();
 
@@ -99,10 +103,15 @@ export class CategoriesService {
     const admin = await this.adminsService.findOne(user.username);
     if (!admin)
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید.');
-    const category = await this.categoryRepository.findOne({
-      id: editCategoryDTO.id,
-    });
+    const category = await this.categoryRepository.findOne(
+      {
+        id: editCategoryDTO.id,
+      },
+      { relations: ['admin'] },
+    );
     if (!category) throw new NotFoundException('تخصص مورد نظر یافت نشد.');
+    if (category.admin.username !== admin.username)
+      throw new UnauthorizedException('شما به این عملیات دسترسی ندارید.');
     category.title = editCategoryDTO.title;
     if (file) {
       const image = sharp('uploads/images/' + file.filename);
@@ -161,9 +170,15 @@ export class CategoriesService {
     return interest;
   }
 
-  async toggleCategoryActiveness(id: number): Promise<void> {
-    const category = await this.categoryRepository.findOne({ id });
+  async toggleCategoryActiveness(id: number, user: CurrentUser): Promise<void> {
+    const category = await this.categoryRepository.findOne(
+      { id },
+      { relations: ['admin'] },
+    );
     if (!category) throw new NotFoundException('دسته بندی مورد نظر یافت نشد.');
+    const admin = await this.adminsService.findOne(user.username);
+    if (category.admin.username !== admin.username)
+      throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     await this.categoryRepository.update(
       { id },
       { isActive: !category.isActive },

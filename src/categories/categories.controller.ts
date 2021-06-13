@@ -38,8 +38,10 @@ export class CategoriesController {
 
   @UseGuards(AdminJwtAuthGuard)
   @Get('getAllForAdmin')
-  async getAllCategoriesForAdmin(): Promise<Interest[]> {
-    return this.categoriesService.getAllCategoriesForAdmin();
+  async getAllCategoriesForAdmin(
+    @GetAdmin() admin: CurrentUser,
+  ): Promise<Interest[]> {
+    return this.categoriesService.getAllCategoriesForAdmin(admin);
   }
 
   @UseGuards(AdminJwtAuthGuard)
@@ -111,8 +113,9 @@ export class CategoriesController {
       }),
     )
     id: number,
+    @GetAdmin() admin: CurrentUser,
   ): Promise<void> {
-    return this.categoriesService.toggleCategoryActiveness(id);
+    return this.categoriesService.toggleCategoryActiveness(id, admin);
   }
 
   @Get('image/:imgpath')
