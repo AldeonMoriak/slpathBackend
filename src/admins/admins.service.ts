@@ -87,7 +87,7 @@ export class AdminsService {
     if (!adminUser || !adminUser.isSuperAdmin)
       throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
     const { email, name, password, username } = signupUserDTO;
-    const isUsernameTaken = await this.findOne(username);
+    const isUsernameTaken = await this.adminRepository.findOne({ username });
     if (isUsernameTaken)
       throw new ConflictException('این نام کاربری قبلا استفاده شده است');
     const admin = new Admin();
