@@ -13,7 +13,7 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   entities: [__dirname + '/../**/*.entity.{ts,js}'],
   extra: { charset: 'utf8mb4_unicode_ci' },
   // TODO: synchronize must be false in production phase
-  synchronize: true,
+  synchronize: process.env.NODE_ENV !== 'production',
   ssl: {
     rejectUnauthorized: false,
   },
