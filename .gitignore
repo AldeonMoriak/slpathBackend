@@ -3,6 +3,7 @@
 /node_modules
 /uploads
 yarn.lock
+*.env
 
 # Logs
 logs
