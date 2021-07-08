@@ -17,6 +17,7 @@ import * as sharp from 'sharp';
 import { EditProfileDTO } from './dto/edit-profile.dto';
 import { EditAdminDTO } from './dto/edit-admin.dto';
 import { ResponseMessage } from 'src/interfaces/response-message.interface';
+import fs from 'fs';
 
 @Injectable()
 export class AdminsService {
@@ -100,6 +101,9 @@ export class AdminsService {
     admin.profilePictureThumbnailUrl = null;
     if (file) {
       const image = sharp('uploads/profiles/' + file.filename);
+      if (!fs.existsSync('uploads/thumbnails')) {
+        fs.mkdirSync('uploads/thumbnails/');
+      }
       image
         .resize({
           width: 300,

@@ -15,6 +15,7 @@ import { Interest } from './category.entity';
 import { CreateCategoryDTO } from './dto/create-category.dto';
 import { EditCategoryDTO } from './dto/edit-category.dto';
 import CategoryResponse from './interfaces/category.interface';
+import fs from 'fs';
 
 @Injectable()
 export class CategoriesService {
@@ -63,6 +64,9 @@ export class CategoriesService {
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     if (!file) throw new NotAcceptableException('لطفا یک عکس بارگزاری کنید!');
     const image = sharp('uploads/images/' + file.filename);
+    if (!fs.existsSync('uploads/thumbnails')) {
+      fs.mkdirSync('uploads/thumbnails/');
+    }
     image
       .resize({
         width: 300,

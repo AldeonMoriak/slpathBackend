@@ -19,6 +19,7 @@ import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import ArticleInterface from './interfaces/article.interface';
 import { Comment as CommentEntity } from 'src/comments/comment.entity';
 import { PaginationDto } from './dto/pagination.dto';
+import fs from 'fs';
 
 @Injectable()
 export class ArticleService {
@@ -287,6 +288,9 @@ export class ArticleService {
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     if (!file) throw new NotAcceptableException('لطفا یک عکس بارگزاری کنید!');
     const image = sharp('uploads/images/' + file.filename);
+    if (!fs.existsSync('uploads/thumbnails')) {
+      fs.mkdirSync('uploads/thumbnails/');
+    }
     image
       .resize({
         width: 300,
