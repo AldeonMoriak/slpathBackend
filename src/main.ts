@@ -14,6 +14,9 @@ async function bootstrap() {
   });
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(process.env.PORT || 5000);
+  const PORT = process.env.PORT || 5000;
+  await app.listen(PORT, () => {
+    console.log(`Our app is running on port ${PORT}`);
+  });
 }
 bootstrap();
