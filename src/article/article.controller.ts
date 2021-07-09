@@ -76,7 +76,7 @@ export class ArticleController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: __dirname + '/uploads/images/',
+        destination: 'app/dist/uploads/images/',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
@@ -99,7 +99,7 @@ export class ArticleController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: __dirname + '/uploads/images/',
+        destination: 'app/dist/uploads/images/',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
@@ -164,8 +164,8 @@ export class ArticleController {
   seeUploadedFile(@Param('imgpath') image: string, @Res() res: Response) {
     return res.sendFile(image, {
       root: image.includes('thumbnail')
-        ? __dirname + '/uploads/thumbnails/'
-        : __dirname + '/uploads/images/',
+        ? 'app/dist/uploads/thumbnails/'
+        : 'app/dist/uploads/images/',
     });
   }
 }

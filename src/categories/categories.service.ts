@@ -63,9 +63,9 @@ export class CategoriesService {
     if (!admin)
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     if (!file) throw new NotAcceptableException('لطفا یک عکس بارگزاری کنید!');
-    const image = sharp(__dirname + '/uploads/images/' + file.filename);
-    if (!fs.existsSync(__dirname + '/uploads/thumbnails')) {
-      fs.mkdirSync(__dirname + '/uploads/thumbnails/');
+    const image = sharp('app/dist/uploads/images/' + file.filename);
+    if (!fs.existsSync('app/dist/uploads/thumbnails')) {
+      fs.mkdirSync('app/dist/uploads/thumbnails/');
     }
     image
       .resize({
@@ -73,7 +73,7 @@ export class CategoriesService {
         fit: sharp.fit.contain,
         background: { r: 255, g: 255, b: 255, alpha: 0.5 },
       })
-      .toFile(__dirname + '/uploads/thumbnails/thumbnail-' + file.filename)
+      .toFile('app/dist/uploads/thumbnails/thumbnail-' + file.filename)
       .then((info) => {
         console.log(info);
       })
@@ -118,14 +118,14 @@ export class CategoriesService {
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید.');
     category.title = editCategoryDTO.title;
     if (file) {
-      const image = sharp(__dirname + '/uploads/images/' + file.filename);
+      const image = sharp('app/dist/uploads/images/' + file.filename);
       image
         .resize({
           width: 300,
           fit: sharp.fit.contain,
           background: { r: 255, g: 255, b: 255, alpha: 0.5 },
         })
-        .toFile(__dirname + '/uploads/thumbnails/thumbnail-' + file.filename)
+        .toFile('app/dist/uploads/thumbnails/thumbnail-' + file.filename)
         .then((info) => {
           console.log(info);
         })

@@ -100,9 +100,9 @@ export class AdminsService {
     admin.profilePictureUrl = null;
     admin.profilePictureThumbnailUrl = null;
     if (file) {
-      const image = sharp(__dirname + '/uploads/profiles/' + file.filename);
-      if (!fs.existsSync(__dirname + '/uploads/thumbnails')) {
-        fs.mkdirSync(__dirname + '/uploads/thumbnails/');
+      const image = sharp('app/dist/uploads/profiles/' + file.filename);
+      if (!fs.existsSync('app/dist/uploads/thumbnails')) {
+        fs.mkdirSync('app/dist/uploads/thumbnails/');
       }
       image
         .resize({
@@ -111,7 +111,7 @@ export class AdminsService {
           background: { r: 255, g: 255, b: 255, alpha: 0.5 },
         })
         .toFile(
-          __dirname + '/uploads/thumbnails/profile-thumbnail-' + file.filename,
+          'app/dist/uploads/thumbnails/profile-thumbnail-' + file.filename,
         )
         .then((info) => {
           console.log(info);
@@ -199,7 +199,7 @@ export class AdminsService {
         await bcrypt.genSalt(10),
       );
     if (file) {
-      const image = sharp(__dirname + '/uploads/profiles/' + file.filename);
+      const image = sharp('app/dist/uploads/profiles/' + file.filename);
       image
         .resize({
           width: 300,
@@ -207,7 +207,7 @@ export class AdminsService {
           background: { r: 255, g: 255, b: 255, alpha: 0.5 },
         })
         .toFile(
-          __dirname + '/uploads/thumbnails/profile-thumbnail-' + file.filename,
+          'app/dist/uploads/thumbnails/profile-thumbnail-' + file.filename,
         )
         .then((info) => {
           console.log(info);
