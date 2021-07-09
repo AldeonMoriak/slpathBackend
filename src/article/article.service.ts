@@ -297,7 +297,7 @@ export class ArticleService {
         fit: sharp.fit.contain,
         background: { r: 255, g: 255, b: 255, alpha: 0.5 },
       })
-      .toFile('uploads/thumbnails/thumbnail-' + file.filename)
+      .toFile('app/uploads/thumbnails/thumbnail-' + file.filename)
       .then((info) => {
         console.log(info);
       })
