@@ -19,7 +19,6 @@ import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import ArticleInterface from './interfaces/article.interface';
 import { Comment as CommentEntity } from 'src/comments/comment.entity';
 import { PaginationDto } from './dto/pagination.dto';
-import fs from 'fs';
 
 @Injectable()
 export class ArticleService {
@@ -287,17 +286,14 @@ export class ArticleService {
     if (!admin)
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     if (!file) throw new NotAcceptableException('لطفا یک عکس بارگزاری کنید!');
-    const image = sharp('app/dist/uploads/images/' + file.filename);
-    if (!fs.existsSync('app/dist/uploads/thumbnails')) {
-      fs.mkdirSync('app/dist/uploads/thumbnails/');
-    }
+    const image = sharp('uploads/images/' + file.filename);
     image
       .resize({
         width: 300,
         fit: sharp.fit.contain,
         background: { r: 255, g: 255, b: 255, alpha: 0.5 },
       })
-      .toFile('app/dist/uploads/thumbnails/thumbnail-' + file.filename)
+      .toFile('uploads/images/thumbnail-' + file.filename)
       .then((info) => {
         console.log(info);
       })
@@ -362,14 +358,14 @@ export class ArticleService {
       throw new UnauthorizedException('شما نویسنده این مقاله نیستید');
     article.editor = admin;
     if (file) {
-      const image = sharp('app/dist/uploads/images/' + file.filename);
+      const image = sharp('uploads/images/' + file.filename);
       image
         .resize({
           width: 300,
           fit: sharp.fit.contain,
           background: { r: 255, g: 255, b: 255, alpha: 0.5 },
         })
-        .toFile('app/dist/uploads/thumbnails/thumbnail-' + file.filename)
+        .toFile('uploads/images/thumbnail-' + file.filename)
         .then((info) => {
           console.log(info);
         })

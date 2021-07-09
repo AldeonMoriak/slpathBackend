@@ -49,7 +49,7 @@ export class CategoriesController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: 'app/dist/uploads/images/',
+        destination: 'uploads/images/',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
@@ -72,7 +72,7 @@ export class CategoriesController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: 'app/dist/uploads/images/',
+        destination: 'uploads/images/',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
@@ -121,9 +121,7 @@ export class CategoriesController {
   @Get('image/:imgpath')
   seeUploadedFile(@Param('imgpath') image: string, @Res() res: Response) {
     return res.sendFile(image, {
-      root: image.includes('thumbnail')
-        ? 'app/dist/uploads/thumbnails/'
-        : 'app/dist/uploads/images/',
+      root: 'uploads/images/',
     });
   }
 }

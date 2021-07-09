@@ -33,7 +33,7 @@ export class AuthController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: 'app/dist/uploads/profiles/',
+        destination: 'uploads/images/',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
