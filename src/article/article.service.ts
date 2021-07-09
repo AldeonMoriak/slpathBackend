@@ -287,9 +287,9 @@ export class ArticleService {
     if (!admin)
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     if (!file) throw new NotAcceptableException('لطفا یک عکس بارگزاری کنید!');
-    const image = sharp('src/uploads/images/' + file.filename);
-    if (!fs.existsSync('src/uploads/thumbnails')) {
-      fs.mkdirSync('src/uploads/thumbnails/');
+    const image = sharp('app/uploads/images/' + file.filename);
+    if (!fs.existsSync('app/uploads/thumbnails')) {
+      fs.mkdirSync('app/uploads/thumbnails/');
     }
     image
       .resize({
@@ -297,7 +297,7 @@ export class ArticleService {
         fit: sharp.fit.contain,
         background: { r: 255, g: 255, b: 255, alpha: 0.5 },
       })
-      .toFile('src/uploads/thumbnails/thumbnail-' + file.filename)
+      .toFile('app/uploads/thumbnails/thumbnail-' + file.filename)
       .then((info) => {
         console.log(info);
       })
@@ -362,14 +362,14 @@ export class ArticleService {
       throw new UnauthorizedException('شما نویسنده این مقاله نیستید');
     article.editor = admin;
     if (file) {
-      const image = sharp('src/uploads/images/' + file.filename);
+      const image = sharp('app/uploads/images/' + file.filename);
       image
         .resize({
           width: 300,
           fit: sharp.fit.contain,
           background: { r: 255, g: 255, b: 255, alpha: 0.5 },
         })
-        .toFile('src/uploads/thumbnails/thumbnail-' + file.filename)
+        .toFile('app/uploads/thumbnails/thumbnail-' + file.filename)
         .then((info) => {
           console.log(info);
         })
