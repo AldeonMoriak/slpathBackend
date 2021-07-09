@@ -288,8 +288,8 @@ export class ArticleService {
       throw new UnauthorizedException('شما به این عملیات دسترسی ندارید');
     if (!file) throw new NotAcceptableException('لطفا یک عکس بارگزاری کنید!');
     const image = sharp('uploads/images/' + file.filename);
-    if (!fs.existsSync('uploads/thumbnails')) {
-      fs.mkdirSync('uploads/thumbnails/');
+    if (!fs.existsSync('app/uploads/thumbnails')) {
+      fs.mkdirSync('app/uploads/thumbnails/');
     }
     image
       .resize({
