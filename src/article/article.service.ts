@@ -107,7 +107,7 @@ export class ArticleService {
       .leftJoin('article.admin', 'admin')
       .addSelect('admin.name')
       .addSelect('admin.username')
-      .addSelect('admin.profilePictureThumbnailUrl')
+      .addSelect('admin.profilePictureUrl')
       .where('article.isActive = :value', { value: true })
       .orderBy('article.createdDateTime', 'DESC')
       .skip(skippedItems)
@@ -146,7 +146,7 @@ export class ArticleService {
       .leftJoin('article.admin', 'admin')
       .addSelect('admin.name')
       .addSelect('admin.username')
-      .addSelect('admin.profilePictureThumbnailUrl')
+      .addSelect('admin.profilePictureUrl')
       .where('article.isActive = :value', { value: true })
       .orderBy('article.views', 'DESC')
       .skip(skippedItems)
@@ -242,7 +242,7 @@ export class ArticleService {
       .leftJoin('article.admin', 'admin')
       .addSelect('admin.name')
       .addSelect('admin.username')
-      .addSelect('admin.profilePictureThumbnailUrl')
+      .addSelect('admin.profilePictureUrl')
       .leftJoinAndSelect('article.tags', 'tags')
       .leftJoinAndSelect(
         'article.comment',
