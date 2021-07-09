@@ -16,6 +16,9 @@ async function bootstrap() {
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());
   try {
+    if (!fs.existsSync(__dirname + '/uploads')) {
+      fs.mkdirSync(__dirname + '/uploads');
+    }
     if (!fs.existsSync(__dirname + '/uploads/thumbnails')) {
       fs.mkdirSync(__dirname + '/uploads/thumbnails/');
     }
