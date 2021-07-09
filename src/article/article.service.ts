@@ -52,7 +52,7 @@ export class ArticleService {
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.description')
-      .addSelect('admin.profilePictureThumbnailUrl')
+      .addSelect('admin.profilePictureUrl')
       .andWhere('article.isActive = :value', { value: true })
       .skip(skippedItems)
       .take(paginationDTO.limit)
