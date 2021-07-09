@@ -15,14 +15,18 @@ async function bootstrap() {
   });
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());
-  if (!fs.existsSync(__dirname + '/uploads/thumbnails')) {
-    fs.mkdirSync(__dirname + '/uploads/thumbnails/');
-  }
-  if (!fs.existsSync(__dirname + '/uploads/images')) {
-    fs.mkdirSync(__dirname + '/uploads/images/');
-  }
-  if (!fs.existsSync(__dirname + '/uploads/profiles')) {
-    fs.mkdirSync(__dirname + '/uploads/profiles/');
+  try {
+    if (!fs.existsSync(__dirname + '/uploads/thumbnails')) {
+      fs.mkdirSync(__dirname + '/uploads/thumbnails/');
+    }
+    if (!fs.existsSync(__dirname + '/uploads/images')) {
+      fs.mkdirSync(__dirname + '/uploads/images/');
+    }
+    if (!fs.existsSync(__dirname + '/uploads/profiles')) {
+      fs.mkdirSync(__dirname + '/uploads/profiles/');
+    }
+  } catch (error) {
+    console.log(__dirname);
   }
   const PORT = process.env.PORT || 5000;
   await app.listen(PORT, () => {
