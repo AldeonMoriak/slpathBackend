@@ -46,7 +46,7 @@ export class AdminsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: 'app/uploads/profiles/',
+        destination: __dirname + '/uploads/profiles/',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
@@ -65,7 +65,7 @@ export class AdminsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: 'app/uploads/profiles/',
+        destination: __dirname + '/uploads/profiles/',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
@@ -143,8 +143,8 @@ export class AdminsController {
   seeUploadedFile(@Param('imgpath') image: string, @Res() res: Response) {
     return res.sendFile(image, {
       root: image.includes('thumbnail')
-        ? 'app/uploads/thumbnails/'
-        : 'app/uploads/profiles/',
+        ? __dirname + '/uploads/thumbnails/'
+        : __dirname + '/uploads/profiles/',
     });
   }
 }
