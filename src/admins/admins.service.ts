@@ -17,7 +17,9 @@ import * as sharp from 'sharp';
 import { EditProfileDTO } from './dto/edit-profile.dto';
 import { EditAdminDTO } from './dto/edit-admin.dto';
 import { ResponseMessage } from 'src/interfaces/response-message.interface';
-import fs from 'fs';
+import * as fs from 'fs';
+import { SupabaseService } from 'src/supabase/supabase.service';
+import * as path from 'path';
 
 @Injectable()
 export class AdminsService {
@@ -25,6 +27,7 @@ export class AdminsService {
     @InjectRepository(Admin)
     private adminRepository: Repository<Admin>,
     private usersService: UsersService,
+    private supabaseService: SupabaseService,
   ) {}
 
   async findAll(admin: CurrentUser): Promise<Admin[]> {
@@ -117,6 +120,20 @@ export class AdminsService {
         .catch((err) => {
           console.log(err);
         });
+      const BUFFER = fs.readFileSync(file.path);
+      await this.supabaseService.uploadFile(
+        BUFFER,
+        file.filename,
+        file.mimetype,
+      );
+      const thumbnailBuffer = fs.readFileSync(
+        path.join('uploads/images/profile-thumbnail-' + file.filename),
+      );
+      await this.supabaseService.uploadFile(
+        thumbnailBuffer,
+        'profile-thumbnail-' + file.filename,
+        file.mimetype,
+      );
       admin.profilePictureUrl = file.filename;
       admin.profilePictureThumbnailUrl = 'profile-thumbnail-' + file.filename;
     }
@@ -197,6 +214,7 @@ export class AdminsService {
         await bcrypt.genSalt(10),
       );
     if (file) {
+      console.log(file);
       const image = sharp('uploads/images/' + file.filename);
       image
         .resize({
@@ -206,11 +224,25 @@ export class AdminsService {
         })
         .toFile('uploads/images/profile-thumbnail-' + file.filename)
         .then((info) => {
-          console.log(info);
+          // console.log(info);
         })
         .catch((err) => {
           console.log(err);
         });
+      const BUFFER = fs.readFileSync(file.path);
+      await this.supabaseService.uploadFile(
+        BUFFER,
+        file.filename,
+        file.mimetype,
+      );
+      const thumbnailBuffer = fs.readFileSync(
+        path.join('uploads/images/profile-thumbnail-' + file.filename),
+      );
+      await this.supabaseService.uploadFile(
+        thumbnailBuffer,
+        'profile-thumbnail-' + file.filename,
+        file.mimetype,
+      );
       adminUser.profilePictureUrl = file.filename;
       adminUser.profilePictureThumbnailUrl =
         'profile-thumbnail-' + file.filename;

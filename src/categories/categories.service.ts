@@ -15,7 +15,9 @@ import { Interest } from './category.entity';
 import { CreateCategoryDTO } from './dto/create-category.dto';
 import { EditCategoryDTO } from './dto/edit-category.dto';
 import CategoryResponse from './interfaces/category.interface';
-import fs from 'fs';
+import * as fs from 'fs';
+import * as path from 'path';
+import { SupabaseService } from 'src/supabase/supabase.service';
 
 @Injectable()
 export class CategoriesService {
@@ -23,6 +25,7 @@ export class CategoriesService {
     @InjectRepository(Interest)
     private categoryRepository: Repository<Interest>,
     private adminsService: AdminsService,
+    private supabaseService: SupabaseService,
   ) {}
 
   async findOne(id: number): Promise<Interest> {
@@ -77,6 +80,16 @@ export class CategoriesService {
       .catch((err) => {
         console.log(err);
       });
+    const BUFFER = fs.readFileSync(file.path);
+    await this.supabaseService.uploadFile(BUFFER, file.filename, file.mimetype);
+    const thumbnailBuffer = fs.readFileSync(
+      path.join('uploads/images/thumbnail-' + file.filename),
+    );
+    await this.supabaseService.uploadFile(
+      thumbnailBuffer,
+      'thumbnail-' + file.filename,
+      file.mimetype,
+    );
     const category = new Interest();
     category.title = createCategoryDTO.title;
     category.admin = admin;
@@ -129,6 +142,20 @@ export class CategoriesService {
         .catch((err) => {
           console.log(err);
         });
+      const BUFFER = fs.readFileSync(file.path);
+      await this.supabaseService.uploadFile(
+        BUFFER,
+        file.filename,
+        file.mimetype,
+      );
+      const thumbnailBuffer = fs.readFileSync(
+        path.join('uploads/images/thumbnail-' + file.filename),
+      );
+      await this.supabaseService.uploadFile(
+        thumbnailBuffer,
+        'thumbnail-' + file.filename,
+        file.mimetype,
+      );
       category.imageUrl = file.filename;
       category.thumbnailUrl = 'thumbnail-' + file.filename;
     }

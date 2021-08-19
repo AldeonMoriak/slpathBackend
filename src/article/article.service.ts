@@ -8,7 +8,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminsService } from 'src/admins/admins.service';
 import { CurrentUser } from 'src/interfaces/current-user.interface';
-import { TagsService } from 'src/tags/tags.service';
 import { getConnection, getManager, Repository, Timestamp } from 'typeorm';
 import { Article } from './article.entity';
 import { CreateArticleDTO } from './dto/create-article.dto';
@@ -19,6 +18,9 @@ import { ResponseMessage } from 'src/interfaces/response-message.interface';
 import ArticleInterface from './interfaces/article.interface';
 import { Comment as CommentEntity } from 'src/comments/comment.entity';
 import { PaginationDto } from './dto/pagination.dto';
+import { SupabaseService } from 'src/supabase/supabase.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class ArticleService {
@@ -26,7 +28,7 @@ export class ArticleService {
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
     private adminsService: AdminsService,
-    private tagsService: TagsService,
+    private supabaseService: SupabaseService,
   ) {}
 
   async findOne(id: number): Promise<Article> {
@@ -53,6 +55,7 @@ export class ArticleService {
       .addSelect('admin.username')
       .addSelect('admin.description')
       .addSelect('admin.profilePictureUrl')
+      .addSelect('admin.profilePictureThumbnailUrl')
       .andWhere('article.isActive = :value', { value: true })
       .skip(skippedItems)
       .take(paginationDTO.limit)
@@ -108,6 +111,7 @@ export class ArticleService {
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.profilePictureUrl')
+      .addSelect('admin.profilePictureThumbnailUrl')
       .where('article.isActive = :value', { value: true })
       .orderBy('article.createdDateTime', 'DESC')
       .skip(skippedItems)
@@ -147,6 +151,7 @@ export class ArticleService {
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.profilePictureUrl')
+      .addSelect('admin.profilePictureThumbnailUrl')
       .where('article.isActive = :value', { value: true })
       .orderBy('article.views', 'DESC')
       .skip(skippedItems)
@@ -243,6 +248,7 @@ export class ArticleService {
       .addSelect('admin.name')
       .addSelect('admin.username')
       .addSelect('admin.profilePictureUrl')
+      .addSelect('admin.profilePictureThumbnailUrl')
       .leftJoinAndSelect('article.tags', 'tags')
       .leftJoinAndSelect(
         'article.comment',
@@ -300,6 +306,16 @@ export class ArticleService {
       .catch((err) => {
         console.log(err);
       });
+    const BUFFER = fs.readFileSync(file.path);
+    await this.supabaseService.uploadFile(BUFFER, file.filename, file.mimetype);
+    const thumbnailBuffer = fs.readFileSync(
+      path.join('uploads/images/thumbnail-' + file.filename),
+    );
+    await this.supabaseService.uploadFile(
+      thumbnailBuffer,
+      'thumbnail-' + file.filename,
+      file.mimetype,
+    );
     const article = new Article();
     article.title = createArticleDTO.title;
     article.description = createArticleDTO.description;
@@ -372,6 +388,20 @@ export class ArticleService {
         .catch((err) => {
           console.log(err);
         });
+      const BUFFER = fs.readFileSync(file.path);
+      await this.supabaseService.uploadFile(
+        BUFFER,
+        file.filename,
+        file.mimetype,
+      );
+      const thumbnailBuffer = fs.readFileSync(
+        path.join('uploads/images/thumbnail-' + file.filename),
+      );
+      await this.supabaseService.uploadFile(
+        thumbnailBuffer,
+        'thumbnail-' + file.filename,
+        file.mimetype,
+      );
       article.imageUrl = file.filename;
       article.thumbnailUrl = 'thumbnail-' + file.filename;
     }

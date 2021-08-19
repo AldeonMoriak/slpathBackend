@@ -8,6 +8,7 @@ import { ArticleModule } from './article/article.module';
 import { CategoriesModule } from './categories/categories.module';
 import { TagsModule } from './tags/tags.module';
 import { CommentsModule } from './comments/comments.module';
+import { SupabaseModule } from './supabase/supabase.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CommentsModule } from './comments/comments.module';
     CategoriesModule,
     TagsModule,
     CommentsModule,
+    SupabaseModule,
   ],
   controllers: [],
   providers: [],
