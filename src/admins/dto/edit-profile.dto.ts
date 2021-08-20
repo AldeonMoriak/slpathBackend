@@ -34,7 +34,9 @@ export class EditProfileDTO {
   categories: string;
 
   @MinLength(20, { message: 'تعداد کاراکتر ها باید بیشتر از ۲۰ باشد' })
-  @MaxLength(210, { message: 'حداکثر تعداد کاراکتر های درباره ما باید ۲۱۰ باشد' })
+  @MaxLength(810, {
+    message: 'حداکثر تعداد کاراکتر های درباره ما باید ۸۱۰ باشد',
+  })
   description: string;
 
   @IsOptional()
