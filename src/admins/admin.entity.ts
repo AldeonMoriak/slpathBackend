@@ -1,3 +1,4 @@
+import { Clinic } from 'src/clinics/clinic.entity';
 import {
   Column,
   Entity,
@@ -11,6 +12,11 @@ import { Interest } from '../categories/category.entity';
 import { Tag } from '../tags/tag.entity';
 import { User } from '../users/user.entity';
 
+export enum AdminStatus {
+  OnHold,
+  Approved,
+  Rejected,
+}
 @Entity()
 export class Admin extends User {
   @OneToMany(() => Interest, (category) => category.admin)
@@ -55,4 +61,10 @@ export class Admin extends User {
 
   @Column({ nullable: true })
   occupation: string;
+
+  @OneToMany(() => Clinic, (clinic) => clinic.admin, { nullable: true })
+  clinic: Clinic;
+
+  @Column({ default: AdminStatus.OnHold })
+  status: AdminStatus;
 }

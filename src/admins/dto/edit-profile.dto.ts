@@ -60,11 +60,11 @@ export class EditProfileDTO {
   linkedinId?: string;
 
   @IsOptional()
-  @IsString({ message: 'نام باید از نوع رشته باشد' })
+  @IsString({ message: 'نام کاربری تلگرام باید از نوع رشته باشد' })
   telegramUsername?: string;
 
   @IsOptional()
-  @IsString({ message: 'نام باید از نوع رشته باشد' })
+  @IsString({ message: 'آدرس کلینیک باید از نوع رشته باشد' })
   clinicAddress?: string;
 
   @IsOptional()

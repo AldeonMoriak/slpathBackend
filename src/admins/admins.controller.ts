@@ -95,6 +95,7 @@ export class AdminsController {
   async getUser(@GetAdmin() admin: CurrentUser): Promise<{ user: Admin }> {
     const user = await this.adminsService.findOne(admin.username);
     delete user.password;
+    delete user.categories;
     return {
       user: user,
     };

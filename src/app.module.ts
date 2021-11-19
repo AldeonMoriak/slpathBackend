@@ -9,6 +9,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { TagsModule } from './tags/tags.module';
 import { CommentsModule } from './comments/comments.module';
 import { SupabaseModule } from './supabase/supabase.module';
+import { ClinicsModule } from './clinics/clinics.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { SupabaseModule } from './supabase/supabase.module';
     TagsModule,
     CommentsModule,
     SupabaseModule,
+    ClinicsModule,
   ],
   controllers: [],
   providers: [],

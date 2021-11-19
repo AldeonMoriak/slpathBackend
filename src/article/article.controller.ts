@@ -117,7 +117,6 @@ export class ArticleController {
   async getArticleForAdmin(
     @Param(
       'id',
-
       new ParseIntPipe({
         exceptionFactory() {
           return new BadRequestException('لطفا یک عدد وارد کنید');
