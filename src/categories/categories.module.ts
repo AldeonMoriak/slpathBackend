@@ -3,11 +3,13 @@ import { CategoriesService } from './categories.service';
 import { CategoriesController } from './categories.controller';
 import { AdminsModule } from 'src/admins/admins.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Category } from './category.entity';
+import { Interest } from './category.entity';
+import { SupabaseModule } from 'src/supabase/supabase.module';
+import { SupabaseService } from 'src/supabase/supabase.service';
 
 @Module({
-  imports: [AdminsModule, TypeOrmModule.forFeature([Category])],
-  providers: [CategoriesService],
+  imports: [AdminsModule, TypeOrmModule.forFeature([Interest]), SupabaseModule],
+  providers: [CategoriesService, SupabaseService],
   controllers: [CategoriesController],
   exports: [CategoriesService],
 })

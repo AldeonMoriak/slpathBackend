@@ -1,8 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AdminsService } from 'src/admins/admins.service';
+import { CurrentUser } from 'src/interfaces/current-user.interface';
 import { UsersService } from 'src/users/users.service';
 import { jwtConstants } from './constants';
+import { LoginUserDTO } from './dto/login-user.dto';
 import { SignupUserDTO } from './dto/signup-user.dto';
 
 @Injectable()
@@ -17,8 +19,12 @@ export class AuthService {
     return this.usersService.signup(signupUserDTO);
   }
 
-  async adminSignup(singupUserDTO: SignupUserDTO): Promise<any> {
-    return this.adminsService.signup(singupUserDTO);
+  async adminSignup(
+    singupUserDTO: SignupUserDTO,
+    file: any,
+    user: CurrentUser,
+  ): Promise<{ message: string } | Error> {
+    return this.adminsService.signup(singupUserDTO, file, user);
   }
 
   async validateUser(username: string, pass: string): Promise<any> {
@@ -31,12 +37,12 @@ export class AuthService {
     return null;
   }
 
-  async adminLogin(payload: any) {
+  async adminLogin(payload: LoginUserDTO) {
     const admin = await this.adminsService.findOne(payload.username);
     if (!admin)
       throw new UnauthorizedException('نام کاربری یا رمز عبور اشتباه است.');
     if (!admin.isActive)
-      throw new UnauthorizedException('اکانت غیرفعال شده است');
+      throw new UnauthorizedException('حساب کاربری غیرفعال شده است');
     if (!(await admin.validatePassword(payload.password)))
       throw new UnauthorizedException('نام کاربری یا رمز عبور اشتباه است.');
 
@@ -50,7 +56,7 @@ export class AuthService {
     };
   }
 
-  async login(user: any) {
+  async login(user: LoginUserDTO) {
     const payload = { username: user.username, sub: user.password };
     return {
       access_token: this.jwtService.sign(payload),

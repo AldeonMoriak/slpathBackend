@@ -2,15 +2,24 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginUserDTO } from 'src/auth/dto/login-user.dto';
 import { SignupUserDTO } from 'src/auth/dto/signup-user.dto';
-import { User } from 'src/users/user.entity';
 import { UsersService } from 'src/users/users.service';
-import { Repository } from 'typeorm';
+import { getConnection, getManager, Repository } from 'typeorm';
 import { Admin } from './admin.entity';
 import * as bcrypt from 'bcrypt';
+import { CurrentUser } from 'src/interfaces/current-user.interface';
+import * as sharp from 'sharp';
+import { EditProfileDTO } from './dto/edit-profile.dto';
+import { EditAdminDTO } from './dto/edit-admin.dto';
+import { ResponseMessage } from 'src/interfaces/response-message.interface';
+import * as fs from 'fs';
+import { SupabaseService } from 'src/supabase/supabase.service';
+import * as path from 'path';
 
 @Injectable()
 export class AdminsService {
@@ -18,33 +27,120 @@ export class AdminsService {
     @InjectRepository(Admin)
     private adminRepository: Repository<Admin>,
     private usersService: UsersService,
+    private supabaseService: SupabaseService,
   ) {}
-  findAll(): Promise<Admin[]> {
-    return this.adminRepository.find();
+
+  async findAll(admin: CurrentUser): Promise<Admin[]> {
+    const currentAdmin = await this.adminRepository.findOne({ id: admin.id });
+    if (!currentAdmin.isSuperAdmin) {
+      throw new UnauthorizedException('شما مجاز به انجام این عملیات نیستید.');
+    }
+    const admins = await this.adminRepository
+      .createQueryBuilder('admin')
+      .leftJoin('admin.createdBy', 'creator')
+      .addSelect('creator.name')
+      .orderBy('admin.createdDateTime', 'ASC')
+      .getMany();
+
+    admins.map((admin) => delete admin.password);
+
+    return admins;
   }
 
-  async getAllUsers(): Promise<User[]> {
-    return this.usersService.findAll();
+  async getAllTherapists(): Promise<Admin[]> {
+    const admins = await this.adminRepository
+      .createQueryBuilder('admin')
+      .select()
+      .innerJoin('admin.categories', 'categories')
+      .addSelect('categories.id')
+      .addSelect('categories.title')
+      .where('admin.isActive = :isActive', { isActive: true })
+      .orderBy('admin.createdDateTime', 'ASC')
+      .getMany();
+
+    admins.map((admin) => delete admin.password);
+    return admins;
   }
 
-  findOne(username: string): Promise<Admin> {
-    return this.adminRepository.findOne({
-      where: {
-        username,
-      },
-    });
+  async findOne(username: string, id?: number): Promise<Admin> {
+    const user = id
+      ? await this.adminRepository.findOne({
+          where: {
+            id,
+          },
+          relations: ['categories'],
+        })
+      : await this.adminRepository.findOne({
+          where: {
+            username,
+          },
+          relations: ['categories'],
+        });
+    if (!user) {
+      throw new NotFoundException('کاربر مورد نظر یافت نشد');
+    }
+    return user;
   }
 
-  async signup(signupUserDTO: SignupUserDTO): Promise<any> {
+  async signup(
+    signupUserDTO: SignupUserDTO,
+    file: any,
+    user: CurrentUser,
+  ): Promise<ResponseMessage> {
+    const adminUser = await this.findOne(user.username);
+    if (!adminUser || !adminUser.isSuperAdmin)
+      throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
     const { email, name, password, username } = signupUserDTO;
+    const isUsernameTaken = await this.adminRepository.findOne({ username });
+    if (isUsernameTaken)
+      throw new ConflictException('این نام کاربری قبلا استفاده شده است');
     const admin = new Admin();
     admin.email = email;
     admin.name = name;
     admin.password = await bcrypt.hash(password, await bcrypt.genSalt(10));
     admin.username = username;
+    admin.createdBy = adminUser;
+    admin.profilePictureUrl = null;
+    admin.profilePictureThumbnailUrl = null;
+    if (file) {
+      const image = sharp('uploads/images/' + file.filename);
+      if (!fs.existsSync('app/dist/uploads/thumbnails')) {
+        fs.mkdirSync('uploads/images/');
+      }
+      image
+        .resize({
+          width: 300,
+          fit: sharp.fit.contain,
+          background: { r: 255, g: 255, b: 255, alpha: 0.5 },
+        })
+        .toFile('uploads/images/profile-thumbnail-' + file.filename)
+        .then((info) => {
+          console.log(info);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      const BUFFER = fs.readFileSync(file.path);
+      await this.supabaseService.uploadFile(
+        BUFFER,
+        file.filename,
+        file.mimetype,
+      );
+      const thumbnailBuffer = fs.readFileSync(
+        path.join('uploads/images/profile-thumbnail-' + file.filename),
+      );
+      await this.supabaseService.uploadFile(
+        thumbnailBuffer,
+        'profile-thumbnail-' + file.filename,
+        file.mimetype,
+      );
+      admin.profilePictureUrl = file.filename;
+      admin.profilePictureThumbnailUrl = 'profile-thumbnail-' + file.filename;
+    }
 
+    const entityManager = getManager();
     try {
-      await admin.save();
+      await entityManager.save(admin);
     } catch (error) {
       console.error(error);
       if (error.errno === 1062) {
@@ -58,8 +154,141 @@ export class AdminsService {
     };
   }
 
-  async remove(id: string): Promise<void> {
-    await this.adminRepository.update(id, { isActive: false });
+  async editProfile(
+    editProfileDTO: EditProfileDTO,
+    file: any,
+    user: CurrentUser,
+  ): Promise<ResponseMessage> {
+    const adminUser = await this.findOne(user.username);
+    return this.edit(adminUser, editProfileDTO, file);
+  }
+
+  async editAdmin(
+    editAdminDTO: EditAdminDTO,
+    file: any,
+    user: CurrentUser,
+  ): Promise<ResponseMessage> {
+    const adminUser = await this.findOne(user.username);
+    if (!adminUser.isSuperAdmin) {
+      throw new UnauthorizedException('شما مجاز به انجام این عملیات نیستید.');
+    }
+    const admin = await this.findOne(editAdminDTO.username);
+    return this.edit(admin, editAdminDTO, file);
+  }
+
+  private async edit(
+    adminUser: Admin,
+    editProfileDTO: EditProfileDTO,
+    file: any,
+  ) {
+    if (!adminUser)
+      throw new UnauthorizedException('شما به این قسمت دسترسی ندارید');
+    const {
+      email,
+      name,
+      password,
+      description,
+      whatsappId,
+      instagramUsername,
+      telegramUsername,
+      clinicAddress,
+      mobileNumber,
+      categories,
+      linkedinId,
+      occupation,
+    } = editProfileDTO;
+    if (!adminUser) throw new NotFoundException('مقاله مورد نظر یافت نشد.');
+    if (name) adminUser.name = name;
+    if (occupation) adminUser.occupation = occupation;
+    if (instagramUsername) adminUser.instagramUsername = instagramUsername;
+    if (whatsappId) adminUser.whatsappId = whatsappId;
+    if (telegramUsername) adminUser.telegramUsername = telegramUsername;
+    if (clinicAddress) adminUser.clinicAddress = clinicAddress;
+    if (mobileNumber) adminUser.mobileNumber = mobileNumber;
+    if (email) adminUser.email = email;
+    if (linkedinId) adminUser.linkedinId = linkedinId;
+    if (description) adminUser.description = description;
+    if (password)
+      adminUser.password = await bcrypt.hash(
+        password,
+        await bcrypt.genSalt(10),
+      );
+    if (file) {
+      console.log(file);
+      const image = sharp('uploads/images/' + file.filename);
+      image
+        .resize({
+          width: 300,
+          fit: sharp.fit.contain,
+          background: { r: 255, g: 255, b: 255, alpha: 0.5 },
+        })
+        .toFile('uploads/images/profile-thumbnail-' + file.filename)
+        .then((info) => {
+          // console.log(info);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      const BUFFER = fs.readFileSync(file.path);
+      await this.supabaseService.uploadFile(
+        BUFFER,
+        file.filename,
+        file.mimetype,
+      );
+      const thumbnailBuffer = fs.readFileSync(
+        path.join('uploads/images/profile-thumbnail-' + file.filename),
+      );
+      await this.supabaseService.uploadFile(
+        thumbnailBuffer,
+        'profile-thumbnail-' + file.filename,
+        file.mimetype,
+      );
+      adminUser.profilePictureUrl = file.filename;
+      adminUser.profilePictureThumbnailUrl =
+        'profile-thumbnail-' + file.filename;
+    }
+
+    const entityManager = getManager();
+    try {
+      await entityManager.save(adminUser);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+
+    const resCategories: number[] = JSON.parse(categories);
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .relation(Admin, 'categories')
+        .of(adminUser)
+        .remove(adminUser.categories);
+      await getConnection()
+        .createQueryBuilder()
+        .relation(Admin, 'categories')
+        .of(adminUser)
+        .add(resCategories);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+    return {
+      message: 'عملیات موفقیت آمیز بود.',
+    };
+  }
+
+  async toggleAdminActivation(
+    id: number,
+    currentUser: CurrentUser,
+  ): Promise<{ message: string }> {
+    const superAdmin = await this.adminRepository.findOne({
+      username: currentUser.username,
+    });
+    if (!superAdmin || !superAdmin.isSuperAdmin)
+      throw new UnauthorizedException('شما به این عملیات دسترسی ندارید!');
+    const admin = await this.adminRepository.findOne({ id });
+    if (!admin) throw new NotFoundException('کاربر مورد نظر یافت نشد!');
+    await this.adminRepository.update({ id }, { isActive: !admin.isActive });
+    return { message: 'عملیات موفقیت آمیز بود' };
   }
 
   async validateUserPassword(loginUserDTO: LoginUserDTO): Promise<string> {

@@ -22,7 +22,7 @@ export class TagsService {
   ) {}
 
   async findOne(id: number): Promise<Tag> {
-    return this.tagRepository.findOne(id);
+    return this.tagRepository.findOne({ id });
   }
 
   async findAll(): Promise<any[]> {
@@ -33,6 +33,7 @@ export class TagsService {
       .addSelect('admin.name')
       .leftJoin('tag.editor', 'editor')
       .addSelect('editor.name')
+      .orderBy('tag.createdDateTime', 'DESC')
       .getMany();
   }
 
@@ -62,9 +63,12 @@ export class TagsService {
     editTagDTO: EditTagDTO,
     user: CurrentUser,
   ): Promise<TagResponse> {
-    const tag = await this.tagRepository.findOne(editTagDTO.id, {
-      relations: ['admin', 'editor'],
-    });
+    const tag = await this.tagRepository.findOne(
+      { id: editTagDTO.id },
+      {
+        relations: ['admin', 'editor'],
+      },
+    );
 
     if (!tag) throw new NotFoundException('تگ مورد نظر یافت نشد.');
     const admin = await this.adminsService.findOne(user.username);
@@ -102,7 +106,7 @@ export class TagsService {
   }
 
   async deleteTag(id: number): Promise<{ message: string }> {
-    const category = await this.tagRepository.findOne(id);
+    const category = await this.tagRepository.findOne({ id });
     if (!category) throw new NotFoundException('تگ مورد نظر یافت نشد.');
     await this.tagRepository.delete(id);
     return {

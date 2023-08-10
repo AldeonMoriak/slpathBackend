@@ -4,38 +4,57 @@ import {
   UseGuards,
   Request,
   Get,
-  ValidationPipe,
   Body,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginUserDTO } from './dto/login-user.dto';
 import { SignupUserDTO } from './dto/signup-user.dto';
 import { AdminJwtAuthGuard } from '../admins/admin-jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { editFileName } from 'src/utils/edit-file-name';
+import { imageFileFilter } from 'src/utils/image-file-filter';
+import { GetAdmin } from 'src/admins/get-admin.decorator';
+import { CurrentUser } from 'src/interfaces/current-user.interface';
 
 @Controller()
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('auth/login')
-  async login(@Body(ValidationPipe) LoginUserDTO: LoginUserDTO) {
-    return this.authService.login(LoginUserDTO);
+  async login(@Body() loginUserDTO: LoginUserDTO) {
+    return this.authService.login(loginUserDTO);
   }
 
+  @UseGuards(AdminJwtAuthGuard)
   @Post('admin/create')
-  async create(@Body() signupUserDTO: SignupUserDTO) {
-    this.authService.adminSignup(signupUserDTO);
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: 'uploads/images/',
+        filename: editFileName,
+      }),
+      fileFilter: imageFileFilter,
+    }),
+  )
+  async create(
+    @UploadedFile() file,
+    @Body() signupUserDTO: SignupUserDTO,
+    @GetAdmin() admin: CurrentUser,
+  ) {
+    return this.authService.adminSignup(signupUserDTO, file, admin);
   }
 
   @Post('auth/signup')
-  async signup(
-    @Body(ValidationPipe) signupUserDTO: SignupUserDTO,
-  ): Promise<any> {
+  async signup(@Body() signupUserDTO: SignupUserDTO): Promise<any> {
     return this.authService.signup(signupUserDTO);
   }
 
   @Post('portal/login')
   async adminLogin(
-    @Body(ValidationPipe) loginUserDTO: LoginUserDTO,
+    @Body() loginUserDTO: LoginUserDTO,
   ): Promise<{ message: string; access_token: string }> {
     return this.authService.adminLogin(loginUserDTO);
   }
@@ -49,6 +68,6 @@ export class AuthController {
   @UseGuards(AdminJwtAuthGuard)
   @Get('auth/logout')
   logout() {
-    return true;
+    return { message: 'خروج با موفقیت انجام شد' };
   }
 }

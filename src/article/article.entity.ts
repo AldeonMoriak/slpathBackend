@@ -1,4 +1,5 @@
 import { Admin } from 'src/admins/admin.entity';
+import { Comment as CommentEntity } from 'src/comments/comment.entity';
 import {
   BaseEntity,
   Column,
@@ -6,10 +7,10 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Timestamp,
 } from 'typeorm';
-import { Category } from '../categories/category.entity';
 import { Tag } from '../tags/tag.entity';
 
 @Entity()
@@ -35,9 +36,6 @@ export class Article extends BaseEntity {
   @Column({ nullable: true })
   referenceUrl?: string;
 
-  @ManyToOne(() => Category, (category) => category.article, { nullable: true })
-  category: Category;
-
   @ManyToOne(() => Admin, (admin) => admin.article)
   admin: Admin;
 
@@ -56,4 +54,13 @@ export class Article extends BaseEntity {
   })
   @JoinTable()
   tags: Tag[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.article)
+  comment: CommentEntity[];
+
+  @Column({ default: 0 })
+  views: number;
+
+  @Column({ default: true })
+  isActive: boolean;
 }

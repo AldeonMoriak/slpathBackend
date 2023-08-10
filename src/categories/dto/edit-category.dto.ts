@@ -1,3 +1,5 @@
-import { EditTagDTO } from 'src/tags/dto/edit-tag.dto';
+import { CreateCategoryDTO } from './create-category.dto';
 
-export class EditCategoryDTO extends EditTagDTO {}
+export class EditCategoryDTO extends CreateCategoryDTO {
+  id: number;
+}

@@ -7,6 +7,9 @@ import { AdminsModule } from './admins/admins.module';
 import { ArticleModule } from './article/article.module';
 import { CategoriesModule } from './categories/categories.module';
 import { TagsModule } from './tags/tags.module';
+import { CommentsModule } from './comments/comments.module';
+import { SupabaseModule } from './supabase/supabase.module';
+import { ClinicsModule } from './clinics/clinics.module';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import { TagsModule } from './tags/tags.module';
     ArticleModule,
     CategoriesModule,
     TagsModule,
+    CommentsModule,
+    SupabaseModule,
+    ClinicsModule,
   ],
   controllers: [],
   providers: [],
